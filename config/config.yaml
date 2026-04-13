@@ -1,0 +1,13 @@
+app:
+  name: "URL-Shortener"
+  host: "0.0.0.0"
+  port: 8000
+  secret_key: "dtfyiguihnojmn4gefobv"
+  debug: true
+
+database:
+  host: "localhost"
+  port: 5433
+  name: "db"
+  user: "user"
+  password: "password"
