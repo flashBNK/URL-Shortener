@@ -11,10 +11,10 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
     Контракт репозитория для Link.
     """
 
+    @abstractmethod
+    def find_by_short_url(self, name: str) -> LinkDTO:
+        raise LinkNotFoundError
+
     # @abstractmethod
-    # def find_by_name(self, name: str) -> Author:
-    #     raise LinkNotFoundError
-    #
-    # @abstractmethod
-    # async def find_by_filters(self, author_filters: LinkFilterDTO) -> List[LinkDTO]:
+    # async def find_by_filters(self, link_filters: LinkFilterDTO) -> List[LinkDTO]:
     #     raise LinkNotFoundError

@@ -8,7 +8,7 @@ def generate_context(project_path, output_file):
         for root, dirs, files in os.walk(project_path):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for file in files:
-                if file.endswith(('.py', '.yaml', '.md', '.ini')):
+                if file.endswith(('.py', '.yaml', '.md', '.ini', '.yml', 'Dockerfile', 'Makefile', '.env')):
                     file_path = os.path.join(root, file)
                     try:
                         with open(file_path, 'r', encoding='utf-8') as infile:

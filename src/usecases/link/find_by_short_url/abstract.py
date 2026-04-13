@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractGetLinkUseCase(ABC):
+class AbstractFindByShortUrlLinkUseCase(ABC):
     @abstractmethod
     async def execute(self, short_url: str):
         ...

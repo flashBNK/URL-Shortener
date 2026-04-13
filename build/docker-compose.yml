@@ -1,0 +1,41 @@
+name: url-shortener
+
+services:
+  db:
+    image: postgres:16-alpine # (легковесный постгрес)
+    container_name: url_db
+#    restart: always # запсук контейнера при запуске IDE
+    env_file:
+      - ../config/.env
+    ports:
+      - "5433:5432"
+    volumes: # данные, которые должны сохраниться в независимости от состояния образа
+      - postgres_data:/var/lib/postgresql/data
+      - .init:/docker-entrypoint-initdb.d
+    networks: # метод связи приложения и докер контейнера
+      - url_net
+    healthcheck: # в определённый момент будет выполнять определённую команду с определённым интервалом
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB'"]
+      interval: 10s
+      timeout: 3s # время выполнения команды
+      retries: 3 # количество попыток выполнения указанной команды, в случае последовательных неудач
+
+#  app:
+#    build:
+#       context: ..
+#       dockerfile: build/Dockerfile
+#    container_name: study_app
+#    ports:w5
+#      - "8000:8000"
+#    networks:
+#      - study_net
+#    depends_on: # приложение запустится только после того, как db выполнит условие service_healthy
+#      db:
+#        condition: service_healthy # если healthcheck из db пройдёт, то только тогда начнётся запуск приложения app. позволяет запускаться только последвовательно
+
+volumes:
+  postgres_data:
+
+networks:
+  url_net:
+    driver: bridge
