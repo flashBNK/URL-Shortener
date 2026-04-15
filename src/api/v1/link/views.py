@@ -1,31 +1,54 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.exceptions import ResponseValidationError
 
 from api.v1.link.models import LinkSchema, CreateLinkSchema
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist
 from domain.link.models import CreateLinkDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
+from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
 from usecases.link.create.abstract import AbstractCreateLinkUseCase
-from .dependencies import find_by_short_url_link_use_case, create_link_use_case
+from .dependencies import find_by_short_url_link_use_case, create_link_use_case, redirect_link_use_case
 
 router = APIRouter(prefix="/link")
+short_router = APIRouter()
 
 
-@router.get("/{short_url}", response_model=LinkSchema)
-async def find_link(short_url: str,
-        usecase: AbstractFindByShortUrlLinkUseCase = Depends(find_by_short_url_link_use_case)
-) -> JSONResponse:
+@short_router.get("/{short_url}", response_model=LinkSchema)
+async def redirect_link(short_url: str,
+        usecase: AbstractRedirectLinkUseCase = Depends(redirect_link_use_case)
+) -> RedirectResponse | HTTPException:
     try:
         link = await usecase.execute(short_url)
     except LinkNotFoundError:
-        return JSONResponse({"error": "Link not found"}, status_code=status.HTTP_404_NOT_FOUND)
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
 
     schema = LinkSchema(
         id=link.id,
         short_url=link.short_url,
         url=link.url,
+        total=link.total,
     )
-    return JSONResponse(schema.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+    return RedirectResponse(url=schema.url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@router.get("/{short_url}", response_model=LinkSchema)
+async def find_link(short_url: str,
+        usecase: AbstractFindByShortUrlLinkUseCase = Depends(find_by_short_url_link_use_case)
+):
+    try:
+        link = await usecase.execute(short_url)
+    except LinkNotFoundError:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+
+    schema = LinkSchema(
+        id=link.id,
+        short_url=link.short_url,
+        url=link.url,
+        total=link.total,
+    )
+    return JSONResponse(schema.model_dump(mode='json'), status_code=status.HTTP_200_OK)
 
 
 @router.post("/", response_model=LinkSchema)
@@ -47,6 +70,7 @@ async def create_link(
         id=link.id,
         short_url=link.short_url,
         url=link.url,
+        total=link.total
     )
 
     return JSONResponse(schema.model_dump(mode="json"), status_code=status.HTTP_201_CREATED)

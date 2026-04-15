@@ -1,5 +1,5 @@
 from domain.link.models import CreateLinkDTO, LinkDTO
-from domain.link.exceptions import LinkIsExist
+from domain.link.exceptions import LinkIsExist, LinkAlreadyExist
 from utils.short_code import generate_short_code
 
 from .abstract import AbstractCreateLinkUseCase
@@ -19,5 +19,4 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
             except LinkIsExist:
                 continue
 
-        async with self._uow as uow:
-            return await uow.repository.create(dto)
+        raise LinkAlreadyExist

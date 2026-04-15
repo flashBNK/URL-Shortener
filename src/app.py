@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from settings import settings
 from api.v1.routers import router
+from api.v1.link.views import short_router
 from container import Container
 
 container = Container()
@@ -42,6 +43,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
+app.include_router(short_router)
 
 # if __name__ == "__main__":
 #     uvicorn.run(
