@@ -1,8 +1,13 @@
+import re
+
 from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, select
+from sqlalchemy.exc import IntegrityError
 
-from domain.link.exceptions import LinkNotFoundError
+
+from domain.link.exceptions import LinkNotFoundError, LinkIsExist
 from domain.link.repository import AbstractLinkRepository
 from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO, ListLinksDTO
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
@@ -26,7 +31,24 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
 
     async def create(self, dto: CreateLinkDTO) -> LinkDTO:
-        pass
+        db_link = LinkModel(
+            url=dto.url,
+            short_url=dto.short_url,
+        )
+
+        self._session.add(db_link)
+        try:
+            await self._session.flush()
+        except IntegrityError as e:
+            pattern = r'Key \((.*?)\)=\((.*?)\)'
+            match = re.search(pattern, str(e))
+            columns = [col.strip() for col in match.group(1).split(',')]
+            values = [val.strip() for val in match.group(2).split(',')]
+
+            raise LinkIsExist(field=columns[0], value=values[0])
+
+        return self._to_domain(db_link)
+
 
     async def get(self, link_id: int) -> LinkDTO:
         pass

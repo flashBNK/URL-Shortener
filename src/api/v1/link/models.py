@@ -8,7 +8,6 @@ class LinkSchema(BaseModel):
 
 class CreateLinkSchema(BaseModel):
     url: str
-    short_url: str
 
 class UpdateLinkSchema(CreateLinkSchema):
     ...
