@@ -5,6 +5,7 @@ class LinkSchema(BaseModel):
     id: int
     url: str
     short_url: str
+    total: int
 
 class CreateLinkSchema(BaseModel):
     url: str

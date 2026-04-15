@@ -6,6 +6,7 @@ class LinkDTO:
     id: int
     url: str
     short_url: str
+    total: int
 
 @dataclass(slots=True)
 class CreateLinkDTO:
