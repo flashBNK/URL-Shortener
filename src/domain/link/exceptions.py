@@ -10,3 +10,8 @@ class LinkIsExist(Exception):
 class LinkAlreadyExist(Exception):
     def __init__(self) -> None:
         super().__init__( f"Link already exists.")
+
+
+class InvalidUrlError(Exception):
+    def __init__(self) -> None:
+        super().__init__( f"Invalid url.")
