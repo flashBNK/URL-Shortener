@@ -15,3 +15,8 @@ class LinkAlreadyExist(Exception):
 class InvalidUrlError(Exception):
     def __init__(self) -> None:
         super().__init__( f"Invalid url.")
+
+
+class UnsafeUrlError(Exception):
+    def __init__(self) -> None:
+        super().__init__( f"Unsafe url.")

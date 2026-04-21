@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.exceptions import ResponseValidationError
 
 from api.v1.link.models import LinkSchema, CreateLinkSchema
-from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError
+from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError
 from domain.link.models import CreateLinkDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
@@ -68,8 +68,11 @@ async def create_link(
 
     try:
         link = await usecase.execute(dto)
-    except (LinkIsExist, InvalidUrlError) as exc:
+    except LinkIsExist as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except (InvalidUrlError, UnsafeUrlError) as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
+
 
     schema = LinkSchema(
         id=link.id,
