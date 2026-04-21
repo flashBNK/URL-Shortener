@@ -16,6 +16,7 @@ class _AppSettings(BaseSettings):
     host: str = '0.0.0.0'
     port: int = 8000
     secret_key: SecretStr
+    safe_browsing_api_key: SecretStr
     debug: bool = True
 
     def get_app_url(self):

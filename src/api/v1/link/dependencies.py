@@ -30,9 +30,10 @@ def find_by_short_url_link_use_case(
 def create_link_use_case(
     session: AsyncSession = Depends(get_async_session),
     url_service: UrlService = Depends(Provide[Container.url_service]),
+    safe_browsing_service = Provide[Container.safe_browsing_service],
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLCreateLinkUseCase(uow=uow, url_service=url_service)
+    return PostgreSQLCreateLinkUseCase(uow=uow, url_service=url_service, safe_browsing_service=safe_browsing_service)
 
 
 def redirect_link_use_case(

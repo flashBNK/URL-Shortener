@@ -3,6 +3,7 @@ app:
   host: "0.0.0.0"
   port: 8000
   secret_key: "dtfyiguihnojmn4gefobv"
+  safe_browsing_api_key: "AIzaSyCEbO3YI_P4M251gEplfuhtsF-Fx61_p7E"
   debug: true
 
 database:
