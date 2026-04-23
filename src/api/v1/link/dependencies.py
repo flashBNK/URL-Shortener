@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_link_unit_of_work
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
+from services.geo import GeoService
 
 from usecases.link.find_by_short_url.implementation import PostgreSQLFindByShortUrlLinkUseCase
 from usecases.link.redirect.implementation import PostgreSQLRedirectLinkUseCase
@@ -36,8 +37,10 @@ def create_link_use_case(
     return PostgreSQLCreateLinkUseCase(uow=uow, url_service=url_service, safe_browsing_service=safe_browsing_service)
 
 
+@inject
 def redirect_link_use_case(
     session: AsyncSession = Depends(get_async_session),
+    geo_service: GeoService = Depends(Provide[Container.geo_service]),
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLRedirectLinkUseCase(uow=uow)
+    return PostgreSQLRedirectLinkUseCase(uow=uow, geo_service=geo_service)

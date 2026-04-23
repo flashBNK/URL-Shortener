@@ -20,3 +20,8 @@ class InvalidUrlError(Exception):
 class UnsafeUrlError(Exception):
     def __init__(self) -> None:
         super().__init__( f"Unsafe url.")
+
+
+class GetGeoError(Exception):
+    def __init__(self) -> None:
+        super().__init__( f"Get geographic data failed.")

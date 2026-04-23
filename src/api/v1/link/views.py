@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.exceptions import ResponseValidationError
 
@@ -21,10 +21,13 @@ short_router = APIRouter()
 
 @short_router.get("/{short_url}", response_model=LinkSchema)
 async def redirect_link(short_url: str,
-        usecase: AbstractRedirectLinkUseCase = Depends(redirect_link_use_case)
+        request: Request,
+        usecase: AbstractRedirectLinkUseCase = Depends(redirect_link_use_case),
 ) -> RedirectResponse | HTTPException:
+    ip = request.client.host
+    user_agent = request.headers.get("User-Agent")
     try:
-        link = await usecase.execute(short_url)
+        link = await usecase.execute(short_url, ip=ip, user_agent=user_agent)
     except LinkNotFoundError:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
 
