@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -21,3 +23,20 @@ class UpdateLinkDTO(CreateLinkDTO):
 class ListLinksDTO:
     url: str
     short_url: str
+
+
+@dataclass(slots=True)
+class LinkClickDTO:
+    id: int
+    link_id: int
+    ip: str
+    country: str
+    user_agent: str
+    clicked_at: datetime
+
+@dataclass(slots=True)
+class CreateLinkClickDTO:
+    link_id: int
+    ip: str
+    country: str
+    user_agent: str

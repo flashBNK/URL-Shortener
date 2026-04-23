@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .link import PostgreSQLLinkRepository
+from .click import PostgreSQLLinkClickRepository
 
 
 class PostgreSQLLinkUnitOfWork:
@@ -8,9 +9,11 @@ class PostgreSQLLinkUnitOfWork:
         self._session: AsyncSession = session # инициализируем сессию
 
         self.repository: PostgreSQLLinkRepository | None = None # объявляем репозиторий
+        self.click_repository: PostgreSQLLinkClickRepository | None = None
 
     async def __aenter__(self):
         self.repository = PostgreSQLLinkRepository(self._session) # инициализируем репозиторий
+        self.click_repository = PostgreSQLLinkClickRepository(self._session)
         return self
 
     async def __aexit__(self, exc_type: Exception | None, exc_val, traceback):
@@ -20,6 +23,7 @@ class PostgreSQLLinkUnitOfWork:
             await self.commit()
         await self._session.close() # закрываем сессию
         self.repository = None # зануляем репозиторий (приводим в базовое состояние)
+        self.click_repository = None
 
     async def commit(self):
         await self._session.commit() # коммитим в базу
