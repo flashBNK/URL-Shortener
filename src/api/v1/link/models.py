@@ -16,3 +16,9 @@ class UpdateLinkSchema(CreateLinkSchema):
 class ListLinksSchema(BaseModel):
     url: str
     short_url: str
+
+
+class GroupByCountryLinkSchema(BaseModel):
+    link_id: int
+    total: int
+    by_country: dict

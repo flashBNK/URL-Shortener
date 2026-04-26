@@ -40,3 +40,10 @@ class CreateLinkClickDTO:
     ip: str
     country: str
     user_agent: str
+
+
+@dataclass(slots=True)
+class GroupByCountryLinkDTO:
+    link_id: int
+    total: int
+    by_country: dict
