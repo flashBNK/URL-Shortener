@@ -10,6 +10,7 @@ from services.geo import GeoService
 from usecases.link.find_by_short_url.implementation import PostgreSQLFindByShortUrlLinkUseCase
 from usecases.link.redirect.implementation import PostgreSQLRedirectLinkUseCase
 from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
+from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
 
 from services.url import UrlService
 from container import Container
@@ -44,3 +45,10 @@ def redirect_link_use_case(
 ):
     uow = get_link_unit_of_work(session=session)
     return PostgreSQLRedirectLinkUseCase(uow=uow, geo_service=geo_service)
+
+
+def stats_link_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_link_unit_of_work(session=session)
+    return PostgreSQLGroupByCountryLinkUseCase(uow=uow)
