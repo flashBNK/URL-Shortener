@@ -1,16 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="add link click stats">
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/group_by_country/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/group_by_country/abstract.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/group_by_country/implementation.py" afterDir="false" />
+    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="added stats_link endpoint">
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/crypto.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/dependencies.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/routers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/v1/user/views.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/domain/user/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/domain/user/exceptions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/domain/user/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/domain/user/repository.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/user.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/user/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/user/exceptions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/user/uow.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/user/user.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/create/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/create/abstract.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/create/implementation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/get/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/get/abstract.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/usecases/user/get/implementation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/link/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/link/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/domain/link/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/link/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/click.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/click.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/v1/routers.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/routers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/container.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/container.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/domain/link/repository.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/link/repository.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/di/injection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/di/injection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/link.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/link.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -211,7 +231,8 @@
       <workItem from="1776842269362" duration="1567000" />
       <workItem from="1776963526121" duration="314000" />
       <workItem from="1776964172942" duration="9845000" />
-      <workItem from="1777215524754" duration="6615000" />
+      <workItem from="1777215524754" duration="8932000" />
+      <workItem from="1777298999820" duration="8262000" />
     </task>
     <task id="LOCAL-00001" summary="fix in work migrations and database. add first handler">
       <option name="closed" value="true" />
@@ -261,7 +282,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776974565264</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added stats_link endpoint">
+      <option name="closed" value="true" />
+      <created>1777222445860</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1777222445860</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -277,11 +306,12 @@
     <MESSAGE value="add url checking" />
     <MESSAGE value="add a check link for using Google Safe Browsing API" />
     <MESSAGE value="add link click stats" />
-    <option name="LAST_COMMIT_MESSAGE" value="add link click stats" />
+    <MESSAGE value="added stats_link endpoint" />
+    <option name="LAST_COMMIT_MESSAGE" value="added stats_link endpoint" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/URL_Shortener$URL_Shortener.coverage" NAME="URL-Shortener Coverage Results" MODIFIED="1775924661770" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1777220452633" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1777306974663" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/URL_Shortener$short_code.coverage" NAME="short_code Coverage Results" MODIFIED="1776242371671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/utils" />
     <SUITE FILE_PATH="coverage/URL_Shortener$test.coverage" NAME="test Coverage Results" MODIFIED="1776842469113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
