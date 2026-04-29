@@ -3,6 +3,7 @@ from dependency_injector.providers import Singleton, Factory
 
 from infrastructure.databases.postgresql.session_manager import DatabaseSessionManager
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
+from infrastructure.repositories.postgresql.token.uow import PostgreSQLTokenUnitOfWork
 from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
 from services.geo import GeoService
 from services.url import UrlService
@@ -18,3 +19,5 @@ class Container(DeclarativeContainer):
     link_uow_factory = Factory(PostgreSQLLinkUnitOfWork)
 
     user_uow_factory = Factory(PostgreSQLUserUnitOfWork)
+
+    token_uow_factory = Factory(PostgreSQLTokenUnitOfWork)

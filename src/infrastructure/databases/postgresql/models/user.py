@@ -1,5 +1,6 @@
+from typing import Optional
 from datetime import datetime, UTC
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime
 
 from ..base import Base
@@ -14,3 +15,6 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     is_active: Mapped[bool] = mapped_column(default=True)
+
+    tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete, delete-orphan")
+    # link: Mapped[Optional["Link"]] = relationship(back_populates="user")

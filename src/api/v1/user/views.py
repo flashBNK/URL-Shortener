@@ -3,10 +3,11 @@ from fastapi.responses import JSONResponse
 
 from .models import CreateUserSchema, UserSchema
 from domain.user.models import CreateUserDTO, UserDTO
+from domain.user.exceptions import UserNotFound
 from .dependencies import create_user_use_case, get_user_use_case
 from usecases.user.create.abstract import AbstractCreateUserUseCase
 from usecases.user.get.abstract import AbstractGetUserUseCase
-from infrastructure.repositories.postgresql.user.exceptions import UserIsExist, UserNotFound
+from infrastructure.repositories.postgresql.user.exceptions import UserIsExist
 
 router = APIRouter(prefix="/user")
 

@@ -1,17 +1,17 @@
 import re
 from typing import List
-from datetime import datetime, UTC
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import  select, update
+from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 
-
-from domain.user.exceptions import UserNotFoundError, UserNotFound
+from domain.token.models import LoginUserDTO
+from domain.user.exceptions import UserNotFound
 from domain.user.repository import AbstractUserRepository
 from domain.user.models import UserDTO, CreateUserDTO, UserUpdateDTO
 from infrastructure.databases.postgresql.models.user import User as UserModel
 from .exceptions import UserIsExist
+from api.v1.user.crypto import context
 
 
 class PostgreSQLUserRepository(AbstractUserRepository):
@@ -20,15 +20,10 @@ class PostgreSQLUserRepository(AbstractUserRepository):
 
 
     async def create(self, dto: CreateUserDTO) -> UserDTO:
-        created_at = datetime.now(UTC)
-        is_active = True
-
         db_user = UserModel(
             username=dto.username,
             email=dto.email,
             password=dto.password,
-            created_at=created_at,
-            is_active=is_active,
         )
 
         self._session.add(db_user)
@@ -62,6 +57,20 @@ class PostgreSQLUserRepository(AbstractUserRepository):
     async def list(self, limit: int = 100, offset: int = 0) -> List[UserDTO]:
         pass
 
+
+    async def get_by_credentials(self, dto: LoginUserDTO) -> UserDTO:
+        query = select(UserModel).where(and_(UserModel.username == dto.username))
+        result = await self._session.execute(query)
+        user = result.scalar_one_or_none()
+
+        if user is None:
+            raise UserNotFound()
+
+        verify = context.verify(dto.password, user.password)
+
+        if verify:
+            return self._to_domain(user)
+        raise UserNotFound()
 
     @staticmethod
     def _to_domain(user: UserModel) -> UserDTO:
