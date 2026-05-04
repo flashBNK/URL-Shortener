@@ -21,3 +21,7 @@ class AbstractLinkRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, U
 
     def create(self, dto: UserDTO) -> TokenDTO:
         raise TokenNotFoundError
+
+    @abstractmethod
+    def get_user(self, access_token: str) -> UserDTO:
+        raise TokenNotFoundError

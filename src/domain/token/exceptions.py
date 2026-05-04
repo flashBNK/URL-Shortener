@@ -5,4 +5,4 @@ class TokenNotFoundError(Exception):
 
 class TokenExpiredError(Exception):
     def __init__(self) -> None:
-        super().__init__( f"Refresh token has expired. Please log in again.")
+        super().__init__( f"Refresh or access token has expired. Please log in again.")

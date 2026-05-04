@@ -6,11 +6,13 @@ from infrastructure.di.injection import build_token_unit_of_work
 from infrastructure.repositories.postgresql.token.uow import PostgreSQLTokenUnitOfWork
 
 from usecases.token.create.implementation import PostgreSQLCreateTokenUseCase
+from usecases.token.refresh.implementation import PostgreSQLRefreshTokenUseCase
+from usecases.token.get_user_by_token.implementation import PostgreSQLGetUserByTokenUseCase
 
 from services.url import UrlService
 from container import Container
 
-def get_link_unit_of_work(
+def get_token_unit_of_work(
     session: AsyncSession = Depends(get_async_session)
 ) -> PostgreSQLTokenUnitOfWork:
     return build_token_unit_of_work(session)
@@ -19,5 +21,17 @@ def get_link_unit_of_work(
 def create_token_use_case(
     session: AsyncSession = Depends(get_async_session),
 ):
-    uow = get_link_unit_of_work(session=session)
+    uow = get_token_unit_of_work(session=session)
     return PostgreSQLCreateTokenUseCase(uow=uow)
+
+def refresh_token_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_token_unit_of_work(session=session)
+    return PostgreSQLRefreshTokenUseCase(uow=uow)
+
+def get_user_by_token_use_case(
+        session: AsyncSession = Depends(get_async_session)
+):
+    uow = get_token_unit_of_work(session=session)
+    return PostgreSQLGetUserByTokenUseCase(uow=uow)
