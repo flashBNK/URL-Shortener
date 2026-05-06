@@ -6,7 +6,7 @@ from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
 from .models import CreateUserSchema, UserSchema
 from domain.user.models import CreateUserDTO, UserDTO
 from domain.user.exceptions import UserNotFound
-from .dependencies import create_user_use_case, get_user_use_case
+from .dependencies import create_user_use_case, get_user_use_case, security_scheme
 from api.v1.auth.dependencies import get_user_by_token_use_case
 from usecases.user.create.abstract import AbstractCreateUserUseCase
 from usecases.user.get.abstract import AbstractGetUserUseCase
@@ -14,8 +14,6 @@ from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseC
 from infrastructure.repositories.postgresql.user.exceptions import UserIsExist
 
 router = APIRouter(prefix="/user")
-
-security_scheme = HTTPBearer(scheme_name="Bearer")
 
 
 @router.post("/", response_model=UserSchema)
