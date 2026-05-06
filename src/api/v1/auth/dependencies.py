@@ -31,7 +31,7 @@ def refresh_token_use_case(
     return PostgreSQLRefreshTokenUseCase(uow=uow)
 
 def get_user_by_token_use_case(
-        session: AsyncSession = Depends(get_async_session)
+    session: AsyncSession = Depends(get_async_session)
 ):
     uow = get_token_unit_of_work(session=session)
     return PostgreSQLGetUserByTokenUseCase(uow=uow)

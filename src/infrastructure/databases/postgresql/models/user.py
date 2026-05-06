@@ -17,4 +17,4 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete, delete-orphan")
-    # link: Mapped[Optional["Link"]] = relationship(back_populates="user")
+    links: Mapped[list["Link"]] = relationship(back_populates="user")

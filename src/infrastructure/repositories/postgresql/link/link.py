@@ -1,12 +1,12 @@
 import re
 from typing import List
+from datetime import datetime, UTC, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import  select, update
 from sqlalchemy.exc import IntegrityError
 
-
-from domain.link.exceptions import LinkNotFoundError, LinkIsExist
+from domain.link.exceptions import LinkNotFoundError, LinkIsExist, LinkIsExpires
 from domain.link.repository import AbstractLinkRepository
 from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
@@ -26,6 +26,10 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
         if link is None:
             raise LinkNotFoundError()
+        if link.expires_at is None:
+            pass
+        elif link.expires_at < datetime.now(UTC):
+            raise LinkIsExpires()
 
         await self._session.execute(
             update(LinkModel)
@@ -50,10 +54,17 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
 
     async def create(self, dto: CreateLinkDTO) -> LinkDTO:
+        if dto.user_id:
+            expires_at = None
+        else:
+            expires_at = datetime.now(UTC) + timedelta(days=5)
+
         db_link = LinkModel(
             url=dto.url,
             short_url=dto.short_url,
-            total=0
+            total=0,
+            expires_at=expires_at,
+            user_id=dto.user_id,
         )
 
         self._session.add(db_link)
@@ -90,4 +101,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
             short_url=link.short_url,
             url=link.url,
             total=link.total,
+            is_active=link.is_active,
+            expires_at=link.expires_at,
+            user_id=link.user_id,
         )

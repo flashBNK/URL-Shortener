@@ -25,3 +25,8 @@ class UnsafeUrlError(Exception):
 class GetGeoError(Exception):
     def __init__(self) -> None:
         super().__init__( f"Get geographic data failed.")
+
+
+class LinkIsExpires(Exception):
+    def __init__(self) -> None:
+        super().__init__( f"The link has expired. Please register or log in to create links without time limits.")

@@ -9,11 +9,15 @@ class LinkDTO:
     url: str
     short_url: str
     total: int
+    is_active: bool
+    expires_at: datetime | None
+    user_id: int | None
 
 @dataclass(slots=True)
 class CreateLinkDTO:
     url: Optional[str]
     short_url: Optional[str]
+    user_id: Optional[int]
 
 @dataclass(slots=True)
 class UpdateLinkDTO(CreateLinkDTO):
