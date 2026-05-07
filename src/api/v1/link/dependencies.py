@@ -1,3 +1,4 @@
+from dns.transaction import DeleteNotExact
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependency_injector.wiring import inject, Provide
@@ -11,6 +12,9 @@ from usecases.link.find_by_short_url.implementation import PostgreSQLFindByShort
 from usecases.link.redirect.implementation import PostgreSQLRedirectLinkUseCase
 from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
 from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
+from usecases.link.get_links_me.implementation import PostgreSQLGetMeLinksUseCase
+from usecases.link.delete.implementation import PostgreSQLDeleteLinkUseCase
+from usecases.link.set_active.implementation import PostgreSQLSetActiveLinkUseCase
 
 from services.url import UrlService
 from container import Container
@@ -52,3 +56,24 @@ def stats_link_use_case(
 ):
     uow = get_link_unit_of_work(session=session)
     return PostgreSQLGroupByCountryLinkUseCase(uow=uow)
+
+
+def get_me_links_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_link_unit_of_work(session=session)
+    return PostgreSQLGetMeLinksUseCase(uow=uow)
+
+
+def delete_link_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_link_unit_of_work(session=session)
+    return PostgreSQLDeleteLinkUseCase(uow=uow)
+
+
+def set_active_link_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_link_unit_of_work(session=session)
+    return PostgreSQLSetActiveLinkUseCase(uow=uow)

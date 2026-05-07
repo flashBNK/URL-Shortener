@@ -21,12 +21,7 @@ class CreateLinkDTO:
 
 @dataclass(slots=True)
 class UpdateLinkDTO(CreateLinkDTO):
-    ...
-
-@dataclass(slots=True)
-class ListLinksDTO:
-    url: str
-    short_url: str
+    is_active: bool
 
 
 @dataclass(slots=True)

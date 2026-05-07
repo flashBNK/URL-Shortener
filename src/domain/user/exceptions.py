@@ -8,3 +8,8 @@ class UserNotFoundError(Exception):
 class UserNotFound(Exception):
     def __init__(self) -> None:
         super().__init__( f"User is not found.")
+
+
+class AccessDenied(Exception):
+    def __init__(self) -> None:
+        super().__init__( f"You do not have permission to modify this object.")

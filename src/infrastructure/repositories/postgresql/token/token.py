@@ -52,16 +52,16 @@ class PostgreSQLTokenRepository(AbstractLinkRepository):
         token = token_result.scalar_one_or_none()
 
         if not token:
-            raise TokenNotFoundError
+            raise TokenNotFoundError()
         elif token.access_token_expires_in < datetime.now(UTC):
-            raise TokenExpiredError
+            raise TokenExpiredError()
 
         user_query = select(UserModel).where(UserModel.id == token.user_id)
         user_result = await self._session.execute(user_query)
         user = user_result.scalar_one_or_none()
 
         if not user:
-            raise UserNotFound
+            raise UserNotFound()
 
         user_dto = UserDTO(
             id=user.id,
