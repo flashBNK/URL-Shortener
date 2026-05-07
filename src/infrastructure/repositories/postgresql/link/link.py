@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist, LinkIsExpires
 from domain.link.repository import AbstractLinkRepository
 from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
+from domain.user.exceptions import AccessDenied
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
 
 
@@ -79,6 +80,52 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
             raise LinkIsExist(field=columns[0], value=values[0])
 
         return self._to_domain(db_link)
+
+
+    async def list_me(self, user_id: int) -> List[LinkDTO]:
+        stmt = (
+            (select(LinkModel)
+            .where(LinkModel.user_id == user_id))
+            .order_by(LinkModel.id.desc())
+        )
+        result = await self._session.execute(stmt)
+        links = result.scalars().all()
+
+        if not links:
+            raise LinkNotFoundError()
+
+        links_dto = [
+            self._to_domain(link) for link in links
+        ]
+        return links_dto
+
+
+    async def delete_by_user(self,  short_url: str, user_id: int) -> None:
+        stmt = select(LinkModel).where(LinkModel.short_url == short_url)
+        result = await self._session.execute(stmt)
+        link = result.scalar_one_or_none()
+        if not link:
+            raise LinkNotFoundError()
+        if link.user_id != user_id:
+            raise AccessDenied()
+
+        await self._session.delete(link)
+        await self._session.flush()
+
+
+    async def set_active(self, short_url: str, user_id: int, is_active: bool) -> LinkDTO:
+        stmt = select(LinkModel).where(LinkModel.short_url == short_url)
+        result = await self._session.execute(stmt)
+        link = result.scalar_one_or_none()
+        if not link:
+            raise LinkNotFoundError()
+        if link.user_id != user_id:
+            raise AccessDenied()
+
+        link.is_active = is_active
+        await self._session.flush()
+
+        return self._to_domain(link)
 
 
     async def get(self, link_id: int) -> LinkDTO:

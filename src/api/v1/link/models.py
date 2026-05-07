@@ -21,6 +21,7 @@ class UpdateLinkSchema(CreateLinkSchema):
 class ListLinksSchema(BaseModel):
     url: str
     short_url: str
+    total: int
     is_active: bool
 
 
