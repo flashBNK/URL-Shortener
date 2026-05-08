@@ -50,6 +50,8 @@ async def links_me(
     user: UserDTO | None = Depends(get_current_user_optional),
     usecase: AbstractGetMeLinksUseCase = Depends(get_me_links_use_case)
 ) -> JSONResponse:
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You must be signed in to access")
     try:
         links = await usecase.execute(user.id)
     except UserNotFound:
@@ -62,7 +64,7 @@ async def links_me(
     return JSONResponse(schemas, status_code=status.HTTP_200_OK)
 
 
-@router.delete("/{short_url}/delete", response_model=ListLinksSchema)
+@router.delete("/{short_url}", response_model=ListLinksSchema)
 async def delete_link(
     short_url: str,
     user: UserDTO | None = Depends(get_current_user_optional),
@@ -81,7 +83,7 @@ async def delete_link(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.patch("/{short_url}/edit", response_model=LinkSchema)
+@router.patch("/{short_url}", response_model=LinkSchema)
 async def set_active_link(
     short_url: str,
     is_active: bool,

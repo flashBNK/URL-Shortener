@@ -92,7 +92,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         links = result.scalars().all()
 
         if not links:
-            raise LinkNotFoundError()
+            raise []
 
         links_dto = [
             self._to_domain(link) for link in links
