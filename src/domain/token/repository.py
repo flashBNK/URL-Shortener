@@ -19,6 +19,7 @@ class AbstractLinkRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, U
     def delete_by_user_id(self, user_id: int) -> None:
         raise TokenNotFoundError
 
+    @abstractmethod
     def create(self, dto: UserDTO) -> TokenDTO:
         raise TokenNotFoundError
 

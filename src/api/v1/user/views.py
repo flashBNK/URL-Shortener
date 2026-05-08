@@ -17,7 +17,7 @@ router = APIRouter(prefix="/user")
 
 
 @router.post("/", response_model=UserSchema)
-async def create_link(
+async def create_user(
         payload: CreateUserSchema,
         usecase: AbstractCreateUserUseCase = Depends(create_user_use_case),
 ) -> JSONResponse:

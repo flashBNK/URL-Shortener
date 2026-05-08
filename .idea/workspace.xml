@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="update link table, added relationship for link and user">
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/delete/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/delete/abstract.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/delete/implementation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/get_links_me/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/get_links_me/abstract.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/get_links_me/implementation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/set_active/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/set_active/abstract.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/usecases/link/set_active/implementation.py" afterDir="false" />
+    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="added links_me, delete_by_user, set_active_link">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/link/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/api/v1/link/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/domain/link/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/link/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/domain/link/repository.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/link/repository.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/domain/user/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/user/exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/v1/user/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/user/dependencies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/v1/user/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/user/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/domain/token/repository.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/domain/token/repository.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/link.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/link.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/link_click.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/link_click.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/databases/postgresql/models/user.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/link.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/link/link.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/token/token.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/repositories/postgresql/token/token.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/usecases/link/find_by_short_url/implementation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/usecases/link/find_by_short_url/implementation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/url.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/url.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/usecases/link/create/implementation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/usecases/link/create/implementation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,31 +56,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "FastAPI.URL-Shortener.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.save_code.executor": "Run",
-    "Python.short_code.executor": "Run",
-    "Python.test.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/lolmaks/PycharmProjects/URL-Shortener/src/usecases/link/set_active",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;FastAPI.URL-Shortener.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.save_code.executor&quot;: &quot;Run&quot;,
+    &quot;Python.short_code.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/lolmaks/PycharmProjects/URL-Shortener/src/usecases/link/set_active&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/usecases/link/set_active" />
@@ -229,7 +222,8 @@
       <workItem from="1778046054971" duration="10523000" />
       <workItem from="1778057062072" duration="2000" />
       <workItem from="1778128719123" duration="3015000" />
-      <workItem from="1778166950060" duration="10749000" />
+      <workItem from="1778166950060" duration="10858000" />
+      <workItem from="1778252111992" duration="10122000" />
     </task>
     <task id="LOCAL-00001" summary="fix in work migrations and database. add first handler">
       <option name="closed" value="true" />
@@ -319,7 +313,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778056988019</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="added links_me, delete_by_user, set_active_link">
+      <option name="closed" value="true" />
+      <created>1778188686186</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1778188686186</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -340,11 +342,12 @@
     <MESSAGE value="added token and by_credentials in user" />
     <MESSAGE value="added endpoints refresh_token and get_user_me" />
     <MESSAGE value="update link table, added relationship for link and user" />
-    <option name="LAST_COMMIT_MESSAGE" value="update link table, added relationship for link and user" />
+    <MESSAGE value="added links_me, delete_by_user, set_active_link" />
+    <option name="LAST_COMMIT_MESSAGE" value="added links_me, delete_by_user, set_active_link" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/URL_Shortener$URL_Shortener.coverage" NAME="URL-Shortener Coverage Results" MODIFIED="1775924661770" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1778187114779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1778256815787" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/URL_Shortener$short_code.coverage" NAME="short_code Coverage Results" MODIFIED="1776242371671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/utils" />
     <SUITE FILE_PATH="coverage/URL_Shortener$test.coverage" NAME="test Coverage Results" MODIFIED="1776842469113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

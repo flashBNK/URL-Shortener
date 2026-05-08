@@ -16,5 +16,5 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete, delete-orphan")
+    tokens: Mapped["Token"] = relationship(back_populates="user", cascade="all, delete, delete-orphan")
     links: Mapped[list["Link"]] = relationship(back_populates="user")

@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, DateTime, ForeignKey
 
 from ..base import Base
@@ -16,3 +16,4 @@ class LinkClick(Base):
     clicked_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.UTC))
 
     link_id: Mapped[int] = mapped_column(ForeignKey('link.id'))
+    link: Mapped["Link"] = relationship(back_populates="clicks")

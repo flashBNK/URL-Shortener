@@ -18,3 +18,5 @@ class Link(Base):
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"), nullable=True)
     user: Mapped[Optional["User"]] = relationship(back_populates="links")
+
+    clicks: Mapped[list["LinkClick"]] = relationship(back_populates="link", cascade="all, delete-orphan")
