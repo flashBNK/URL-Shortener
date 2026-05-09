@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from .models import LoginUserSchema, RefreshTokenSchema, TokenSchema
@@ -7,14 +7,17 @@ from domain.user.exceptions import UserNotFound
 from domain.token.models import LoginUserDTO, RefreshTokenDTO
 from usecases.token.create.abstract import AbstractCreateTokenUseCase
 from usecases.token.refresh.abstract import AbstractRefreshTokenUseCase
-
 from .dependencies import create_token_use_case, refresh_token_use_case
+
+from limiter import limiter
 
 router = APIRouter(prefix="/auth")
 
 
 @router.post("/token", response_model=TokenSchema)
+@limiter.limit("5/hour")
 async def create_token(
+        request: Request,
         payload: LoginUserSchema,
         usecase: AbstractCreateTokenUseCase = Depends(create_token_use_case)
 ) -> JSONResponse:

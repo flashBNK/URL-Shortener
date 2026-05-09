@@ -1,13 +1,14 @@
 import uvicorn
-
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from settings import settings
 from api.v1.routers import router
 from api.v1.link.views import short_router
 from container import Container
+from limiter import limiter
 
 container = Container()
 
@@ -42,6 +43,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(router)
 app.include_router(short_router, tags=["Short"])
 
