@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -13,11 +13,15 @@ from usecases.user.get.abstract import AbstractGetUserUseCase
 from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseCase
 from infrastructure.repositories.postgresql.user.exceptions import UserIsExist
 
+from limiter import limiter
+
 router = APIRouter(prefix="/user")
 
 
 @router.post("/", response_model=UserSchema)
+@limiter.limit("5/hour")
 async def create_user(
+        request: Request,
         payload: CreateUserSchema,
         usecase: AbstractCreateUserUseCase = Depends(create_user_use_case),
 ) -> JSONResponse:
@@ -51,7 +55,7 @@ async def get_user_me(
     return JSONResponse(_to_schema(user).model_dump(mode="json"))
 
 
-@router.get("/{user_id}", response_model=UserSchema)
+# @router.get("/{user_id}", response_model=UserSchema)
 async def get_user(
     user_id: int,
     usecase: AbstractGetUserUseCase = Depends(get_user_use_case),

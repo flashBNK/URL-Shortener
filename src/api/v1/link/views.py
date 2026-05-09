@@ -19,11 +19,15 @@ from .dependencies import (find_by_short_url_link_use_case, create_link_use_case
                            set_active_link_use_case)
 from api.v1.user.dependencies import get_current_user_optional
 
+from limiter import limiter, get_anon_key, get_auth_key
+
 router = APIRouter(prefix="/link")
 short_router = APIRouter()
 
 
 @short_router.get("/{short_url}", response_model=LinkSchema)
+@limiter.limit("20/minute", key_func=get_anon_key)
+@limiter.limit("200/minute", key_func=get_auth_key)
 async def redirect_link(short_url: str,
         request: Request,
         usecase: AbstractRedirectLinkUseCase = Depends(redirect_link_use_case),
@@ -65,6 +69,7 @@ async def links_me(
 
 
 @router.delete("/{short_url}", response_model=ListLinksSchema)
+@limiter.limit("30/hour")
 async def delete_link(
     short_url: str,
     user: UserDTO | None = Depends(get_current_user_optional),
@@ -84,6 +89,7 @@ async def delete_link(
 
 
 @router.patch("/{short_url}", response_model=LinkSchema)
+@limiter.limit("30/hour")
 async def set_active_link(
     short_url: str,
     is_active: bool,
@@ -116,7 +122,10 @@ async def find_link(short_url: str,
 
 
 @router.post("/", response_model=LinkSchema)
+@limiter.limit("10/hour", key_func=get_anon_key)
+@limiter.limit("100/hour", key_func=get_auth_key)
 async def create_link(
+        request: Request,
         payload: CreateLinkSchema,
         usecase: AbstractCreateLinkUseCase = Depends(create_link_use_case),
         user: UserDTO | None = Depends(get_current_user_optional),
@@ -139,6 +148,8 @@ async def create_link(
 
 
 @router.get("/{short_url}/stats", response_model=LinkSchema)
+@limiter.limit("10/minute", key_func=get_anon_key)
+@limiter.limit("100/minute", key_func=get_auth_key)
 async def stats_link(
         short_url: str,
         usecase: AbstractGroupByCountryLinkUseCase = Depends(stats_link_use_case),

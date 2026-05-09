@@ -17,11 +17,9 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
         dto.url = self._url_service.normalize_url(dto.url)
 
         if not self._url_service.is_valid_url(url=dto.url):
-            print("-"*100)
             raise InvalidUrlError
 
         if not await self._url_service.check_url_active(url=dto.url):
-            print("-+"*100)
             raise InvalidUrlError
 
         if not await self._safe_browsing_service.is_url_safe(url=dto.url):
