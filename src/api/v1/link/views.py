@@ -71,6 +71,7 @@ async def links_me(
 @router.delete("/{short_url}", response_model=ListLinksSchema)
 @limiter.limit("30/hour")
 async def delete_link(
+    request: Request,
     short_url: str,
     user: UserDTO | None = Depends(get_current_user_optional),
     usecase: AbstractDeleteLinkUseCase = Depends(delete_link_use_case),
@@ -91,6 +92,7 @@ async def delete_link(
 @router.patch("/{short_url}", response_model=LinkSchema)
 @limiter.limit("30/hour")
 async def set_active_link(
+    request: Request,
     short_url: str,
     is_active: bool,
     user: UserDTO | None = Depends(get_current_user_optional),
@@ -151,6 +153,7 @@ async def create_link(
 @limiter.limit("10/minute", key_func=get_anon_key)
 @limiter.limit("100/minute", key_func=get_auth_key)
 async def stats_link(
+        request: Request,
         short_url: str,
         usecase: AbstractGroupByCountryLinkUseCase = Depends(stats_link_use_case),
 ):
