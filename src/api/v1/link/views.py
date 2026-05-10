@@ -68,7 +68,7 @@ async def links_me(
     return JSONResponse(schemas, status_code=status.HTTP_200_OK)
 
 
-@router.delete("/{short_url}", response_model=ListLinksSchema)
+@router.delete("/{short_url}", response_model=LinkSchema)
 @limiter.limit("30/hour")
 async def delete_link(
     request: Request,

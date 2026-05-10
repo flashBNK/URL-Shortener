@@ -1,37 +1,47 @@
 import yaml
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
+import yaml
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
-from pydantic import SecretStr
-
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 BASE_DIR = Path(__file__).resolve().parent
-
-__all__ = ("BASE_DIR", "DATETIME_FORMAT", "settings")
 
 
 class _AppSettings(BaseSettings):
-    name: str = "Study APP"
-    host: str = '0.0.0.0'
-    port: int = 8000
-    secret_key: SecretStr
-    safe_browsing_api_key: SecretStr
-    debug: bool = True
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR.parent / "config" / ".env",
+        env_prefix="APP_",          # читает APP_SECRET_KEY, APP_SAFE_BROWSING_API_KEY
+        extra="ignore",
+    )
 
-    def get_app_url(self):
-        return f"http://{self.host}:{self.port}"
+    name: str = "URL-Shortener"
+    host: str = "0.0.0.0"
+    port: int = 8000
+    debug: bool = False
+    secret_key: SecretStr           # берётся из APP_SECRET_KEY в .env
+    safe_browsing_api_key: SecretStr  # берётся из APP_SAFE_BROWSING_API_KEY в .env
 
 
 class _DatabaseSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR.parent / "config" / ".env",
+        env_prefix="DB_",
+        extra="ignore",
+    )
+
     user: str
     password: SecretStr
-    host: str = 'localhost'
+    host: str = "localhost"
     port: int = 5432
-    name: str = 'db'
+    name: str = "db"
 
-    def get_database_url(self):
-        return f"postgresql+asyncpg://{self.user}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.name}"
+    def get_database_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.user}:"
+            f"{self.password.get_secret_value()}"
+            f"@{self.host}:{self.port}/{self.name}"
+        )
 
 
 class _Settings(BaseSettings):
@@ -40,13 +50,18 @@ class _Settings(BaseSettings):
 
     @classmethod
     def load(cls) -> "_Settings":
-        path = Path(BASE_DIR.parent, "config", "config.yaml")
+        path = BASE_DIR.parent / "config" / "config.yaml"
+        if not path.exists():
+            raise FileNotFoundError(f"Could not find config.yaml in {path}")
 
-        if path.exists():
-            with open(path) as file:
-                return cls(**yaml.safe_load(file))
+        with open(path) as file:
+            data = yaml.safe_load(file)
 
-        raise FileNotFoundError(f"Could not find config.yaml in {path}")
+        # Секреты settings подтянет из .env сам через model_config
+        return cls(
+            app=_AppSettings(**data.get("app", {})),
+            database=_DatabaseSettings(**data.get("database", {})),
+        )
 
 
 settings = _Settings.load()

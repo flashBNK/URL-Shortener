@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import  select, update, delete
 
 from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
-from domain.token.repository import AbstractLinkRepository
+from domain.token.repository import AbstractTokenRepository
 from domain.token.models import LoginUserDTO, TokenDTO, RefreshTokenDTO, UpdateTokenDTO
 from domain.user.exceptions import UserNotFound
 from domain.user.models import UserDTO
@@ -16,7 +16,7 @@ from infrastructure.databases.postgresql.models.user import User as UserModel
 from .crypto import hash_token
 
 
-class PostgreSQLTokenRepository(AbstractLinkRepository):
+class PostgreSQLTokenRepository(AbstractTokenRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
 
@@ -74,6 +74,24 @@ class PostgreSQLTokenRepository(AbstractLinkRepository):
         return user_dto
 
 
+    async def get_token_by_user_id(self, user_id: int) -> TokenDTO:
+        token_query = select(TokenModel).where(TokenModel.user_id == user_id)
+        token_result = await self._session.execute(token_query)
+        token = token_result.scalar_one_or_none()
+
+        if not token:
+            raise TokenNotFoundError()
+
+        token_dto = TokenDTO(
+            access_token=token.access_token,
+            refresh_token=token.refresh_token,
+            access_token_expires_in=token.access_token_expires_in,
+            refresh_token_expires_in=token.refresh_token_expires_in,
+        )
+
+        return token_dto
+
+
     async def get(self, token_id: int) -> TokenDTO:
         pass
 
@@ -90,8 +108,11 @@ class PostgreSQLTokenRepository(AbstractLinkRepository):
 
 
     async def delete_by_user_id(self, user_id: int) -> None:
-        stmt = delete(TokenModel).where(TokenModel.user_id == user_id)
-        await self._session.execute(stmt)
+        try:
+            stmt = delete(TokenModel).where(TokenModel.user_id == user_id)
+            await self._session.execute(stmt)
+        except Exception:
+            raise TokenNotFoundError()
 
 
     async def _create_and_flush_token(self, user_id: int) -> TokenDTO:
