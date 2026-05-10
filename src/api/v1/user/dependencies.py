@@ -6,7 +6,7 @@ from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_user_unit_of_work
 from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
 from domain.user.models import UserDTO
-from domain.token.exceptions import TokenExpiredError
+from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
 from api.v1.auth.dependencies import get_user_by_token_use_case
 
 from usecases.user.create.implementation import PostgreSQLCreateLinkUseCase
@@ -46,5 +46,7 @@ async def get_current_user_optional(
     try:
         user = await usecase.execute(access_token=token)
     except TokenExpiredError:
+        return None
+    except TokenNotFoundError:
         return None
     return user

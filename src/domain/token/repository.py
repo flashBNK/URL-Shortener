@@ -6,7 +6,7 @@ from domain.user.models import UserDTO
 from .exceptions import TokenNotFoundError
 
 
-class AbstractLinkRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, UpdateTokenDTO], ABC):
+class AbstractTokenRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, UpdateTokenDTO], ABC):
     """
     Контракт репозитория для Token.
     """
@@ -25,4 +25,8 @@ class AbstractLinkRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, U
 
     @abstractmethod
     def get_user(self, access_token: str) -> UserDTO:
+        raise TokenNotFoundError
+
+    @abstractmethod
+    def get_token_by_user_id(self, user_id: int) -> TokenDTO:
         raise TokenNotFoundError
