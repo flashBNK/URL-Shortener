@@ -1,6 +1,7 @@
-import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from middlewares.time_middleware import TimingMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -43,8 +44,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+ALLOWED_ORIGINS = (["*"] if settings.app.debug else ["https://mydomain.com", "https://www.mydomain.com"])
+app.add_middleware(TimingMiddleware)
+app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
 app.include_router(router)
 app.include_router(short_router, tags=["Short"])
 
