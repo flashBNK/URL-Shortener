@@ -19,7 +19,7 @@ router = APIRouter(prefix="/auth")
 
 
 @router.post("/token", response_model=TokenSchema)
-@limiter.limit("5/hour")
+@limiter.limit("10/hour")
 async def create_token(
         request: Request,
         payload: LoginUserSchema,

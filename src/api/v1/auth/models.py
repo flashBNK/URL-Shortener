@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator, field_validator
 from datetime import datetime
 
 
 class LoginUserSchema(BaseModel):
     username: str
     password: str
+
+    @field_validator('password', "username")
+    @classmethod
+    def not_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("This field cannot be empty")
+        return value
 
 
 class TokenSchema(BaseModel):
