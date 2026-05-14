@@ -3,8 +3,12 @@ from domain.link.exceptions import LinkIsExist, LinkAlreadyExist, InvalidUrlErro
 from utils.short_code import generate_short_code
 from services.url import UrlService
 from services.safe_browsing import SafeBrowsingService
+from logger import get_logger
 
 from .abstract import AbstractCreateLinkUseCase
+
+
+log = get_logger("usecases.link")
 
 
 class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
@@ -14,6 +18,7 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
         self._safe_browsing_service = safe_browsing_service
 
     async def execute(self, dto: CreateLinkDTO) -> LinkDTO:
+        log.info("creating link", url=dto.url, user_id=dto.user_id)
         dto.url = self._url_service.normalize_url(dto.url)
 
         if not self._url_service.is_valid_url(url=dto.url):
@@ -30,8 +35,12 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
             dto.short_url = generate_short_code()
             try:
                 async with self._uow as uow:
-                    return await uow.repository.create(dto)
+                    link = await self._uow.repository.create(dto)
+                    log.info("link created", short_url=link.short_url, user_id=dto.user_id)
+                    return link
+
             except LinkIsExist:
                 continue
 
+        log.error("link creation failed", url=dto.url)
         raise LinkAlreadyExist
