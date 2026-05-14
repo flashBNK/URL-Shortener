@@ -1,6 +1,9 @@
 import httpx
 
 from urllib.parse import urlparse
+from logger import get_logger
+
+log = get_logger("services.url")
 
 
 _HEADERS = {
@@ -29,6 +32,7 @@ class UrlService:
 
     async def check_url_active(self, url: str) -> bool:
         """НАДО ДОПИЛИТЬ ПРОВЕРКУ СЕРТИФИКАТОВ В ПРОЕКТЕ"""
+        log.debug("checking url availability", url=url)
         try:
             async with httpx.AsyncClient(
                 timeout=10,
@@ -39,18 +43,24 @@ class UrlService:
                 try:
                     response = await client.head(url, headers=_HEADERS)
                     if response.status_code < 500:
-                        return True
+                        result = response.status_code < 500
+                        log.debug("url check complete", url=url, method="HEAD",
+                                  status_code=response.status_code, is_active=result)
+                        return result
                 except httpx.RequestError as e:
                     print("HEAD failed:", e)
 
                 try:
                     async with client.stream("GET", url, headers=_HEADERS) as response:
-                        return response.status_code < 500
+                        result = response.status_code < 500
+                        log.debug("url check complete", url=url, method="GET",
+                                  status_code=response.status_code, is_active=result)
+                        return result
                 except httpx.RequestError as e:
-                    print("GET failed:", e)
+                    log.warning("url check failed", url=url, error=str(e))
 
                 return False
 
         except httpx.RequestError as e:
-            print("HEAD ERROR:", repr(e))
+            log.warning("url check failed", url=url, error=str(e))
             return False

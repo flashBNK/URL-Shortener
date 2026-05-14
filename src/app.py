@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from middlewares.time_middleware import TimingMiddleware
+from middlewares.log_middleware import LoggingMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -10,13 +11,19 @@ from api.v1.routers import router
 from api.v1.link.views import short_router
 from container import Container
 from limiter import limiter
+from logger import setup_logging, get_logger
 
 container = Container()
+
+log = get_logger("app")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Код до yield выполняется один раз на старте (инициализация ресурсов: БД, кэш, клиенты).
 
+
+    setup_logging(settings.app.debug)
+    log.info("application started", host=settings.app.host, port=settings.app.port)
 
     sessionmanager = container.session_manager()
     sessionmanager.init(settings.database.get_database_url())
@@ -36,6 +43,7 @@ async def lifespan(app: FastAPI):
     finally:
         # --- shutdown: корректно закрываем пул соединений ---
         await sessionmanager.close()
+        log.info("application shutdown")
 
 
     # # --- startup: создаём таблицы один раз (идемпотентно) ---
@@ -49,6 +57,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ALLOWED_ORIGINS = (["*"] if settings.app.debug else ["https://mydomain.com", "https://www.mydomain.com"])
+app.add_middleware(LoggingMiddleware)
 app.add_middleware(TimingMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
