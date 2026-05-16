@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class LinkSchema(BaseModel):
@@ -14,9 +15,28 @@ class LinkSchema(BaseModel):
 
 class CreateLinkSchema(BaseModel):
     url: str
+    custom_alias: Optional[str]
 
-class UpdateLinkSchema(CreateLinkSchema):
-    ...
+    @field_validator("custom_alias")
+    @classmethod
+    def validate_custom_alias(cls, value: str) -> str:
+        value = value.strip()
+        if not 4 <= len(value) <= 12:
+            raise ValueError("short url must be between 4 and 12 characters")
+        return value
+
+class UpdateLinkSchema(BaseModel):
+    short_url: Optional[str]
+    is_active: Optional[bool]
+    expires_at: Optional[datetime]
+
+    @field_validator("short_url")
+    @classmethod
+    def validate_short_url(cls, value: str) -> str:
+        value = value.strip()
+        if not 4 <= len(value) <= 12:
+            raise ValueError("short url must be between 4 and 12 characters")
+        return value
 
 class ListLinksSchema(BaseModel):
     url: str

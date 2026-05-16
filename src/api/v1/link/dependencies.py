@@ -13,7 +13,7 @@ from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
 from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
 from usecases.link.get_links_me.implementation import PostgreSQLGetMeLinksUseCase
 from usecases.link.delete.implementation import PostgreSQLDeleteLinkUseCase
-from usecases.link.set_active.implementation import PostgreSQLSetActiveLinkUseCase
+from usecases.link.update.implementation import PostgreSQLUpdateLinkUseCase
 
 from services.url import UrlService
 from container import Container
@@ -71,8 +71,8 @@ def delete_link_use_case(
     return PostgreSQLDeleteLinkUseCase(uow=uow)
 
 
-def set_active_link_use_case(
+def update_link_use_case(
     session: AsyncSession = Depends(get_async_session),
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLSetActiveLinkUseCase(uow=uow)
+    return PostgreSQLUpdateLinkUseCase(uow=uow)
