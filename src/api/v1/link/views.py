@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
 from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, ListLinksSchema, UpdateLinkSchema
-from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError, LinkIsExpires
+from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError, LinkIsExpires, LinkAlreadyExist
 from domain.token.exceptions import TokenNotFoundError
 from domain.user.exceptions import UserNotFound, AccessDenied
 from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
@@ -13,10 +13,10 @@ from usecases.link.create.abstract import AbstractCreateLinkUseCase
 from usecases.link.group_by_country.abstract import AbstractGroupByCountryLinkUseCase
 from usecases.link.get_links_me.abstract import AbstractGetMeLinksUseCase
 from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
-from usecases.link.set_active.implementation import AbstractSetActiveLinkUseCase
+from usecases.link.update.implementation import AbstractUpdateLinkUseCase
 from .dependencies import (find_by_short_url_link_use_case, create_link_use_case, redirect_link_use_case,
                            stats_link_use_case, get_me_links_use_case, delete_link_use_case,
-                           set_active_link_use_case)
+                           update_link_use_case)
 from api.v1.user.dependencies import get_current_user_optional
 
 from limiter import limiter, get_anon_key, get_auth_key
@@ -91,24 +91,31 @@ async def delete_link(
 
 @router.patch("/{short_url}", response_model=LinkSchema)
 @limiter.limit("30/hour")
-async def set_active_link(
+async def update_link(
     request: Request,
     short_url: str,
-    is_active: bool,
+    payload: UpdateLinkSchema,
     user: UserDTO | None = Depends(get_current_user_optional),
-    usecase: AbstractSetActiveLinkUseCase = Depends(set_active_link_use_case),
+    usecase: AbstractUpdateLinkUseCase = Depends(update_link_use_case)
 ) -> JSONResponse:
     if user is None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to modify this object.")
 
+    dto = UpdateLinkDTO(
+        short_url=payload.short_url,
+        is_active=payload.is_active,
+        expires_at=payload.expires_at
+    )
+
     try:
-        link = await usecase.execute(user_id=user.id, short_url=short_url, is_active=is_active)
+        link = await usecase.execute(user_id=user.id, short_url=short_url, dto=dto)
     except AccessDenied as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
     except LinkNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
 
     return JSONResponse(_to_schema(link).model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
 
 
 @router.get("/{short_url}", response_model=LinkSchema)
@@ -137,11 +144,12 @@ async def create_link(
         short_url=None,
         url=payload.url,
         user_id=user_id,
+        custom_alias=payload.custom_alias,
     )
 
     try:
         link = await usecase.execute(dto)
-    except LinkIsExist as exc:
+    except (LinkIsExist, LinkAlreadyExist,) as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     except (InvalidUrlError, UnsafeUrlError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))

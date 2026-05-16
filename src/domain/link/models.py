@@ -18,10 +18,14 @@ class CreateLinkDTO:
     url: Optional[str]
     short_url: Optional[str]
     user_id: Optional[int]
+    custom_alias: Optional[str]
+
 
 @dataclass(slots=True)
-class UpdateLinkDTO(CreateLinkDTO):
-    is_active: bool
+class UpdateLinkDTO:
+    short_url: Optional[str]
+    is_active: Optional[bool]
+    expires_at: Optional[datetime]
 
 
 @dataclass(slots=True)

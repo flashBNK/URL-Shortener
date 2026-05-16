@@ -28,7 +28,7 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
         raise LinkNotFoundError
 
     @abstractmethod
-    def set_active(self, short_url: str, user_id: int, is_active: bool) -> LinkDTO:
+    def update_by_short_url(self, short_url: str, user_id: int, dto: UpdateLinkDTO) -> LinkDTO:
         raise LinkNotFoundError
 
     # @abstractmethod

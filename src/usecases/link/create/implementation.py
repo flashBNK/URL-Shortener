@@ -31,11 +31,20 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
             raise UnsafeUrlError
 
 
+        if dto.custom_alias:
+            dto.short_url = dto.custom_alias
+            async with self._uow as uow:
+                link = await uow.repository.create(dto)
+                log.info("custom link created", short_url=link.short_url, user_id=dto.user_id)
+                return link
+
+
+
         for _ in range(10):
             dto.short_url = generate_short_code()
             try:
                 async with self._uow as uow:
-                    link = await self._uow.repository.create(dto)
+                    link = await uow.repository.create(dto)
                     log.info("link created", short_url=link.short_url, user_id=dto.user_id)
                     return link
 

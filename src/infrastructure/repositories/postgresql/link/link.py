@@ -113,7 +113,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         await self._session.flush()
 
 
-    async def set_active(self, short_url: str, user_id: int, is_active: bool) -> LinkDTO:
+    async def update_by_short_url(self, short_url: str, user_id: int, dto: UpdateLinkDTO) -> LinkDTO:
         stmt = select(LinkModel).where(LinkModel.short_url == short_url)
         result = await self._session.execute(stmt)
         link = result.scalar_one_or_none()
@@ -122,7 +122,12 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         if link.user_id != user_id:
             raise AccessDenied()
 
-        link.is_active = is_active
+        if dto.short_url is not None:
+            link.short_url = dto.short_url
+        if dto.expires_at is not None:
+            link.expires_at = dto.expires_at
+        if dto.is_active is not None:
+            link.is_active = dto.is_active
         await self._session.flush()
 
         return self._to_domain(link)
