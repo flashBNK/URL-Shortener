@@ -1,12 +1,15 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
-from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, ListLinksSchema, UpdateLinkSchema
+from api.pydantic.paginate import Pagination
+from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, UpdateLinkSchema, \
+    ListLinksSchema, LinkShortSchema
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError, LinkIsExpires, LinkAlreadyExist
 from domain.token.exceptions import TokenNotFoundError
 from domain.user.exceptions import UserNotFound, AccessDenied
 from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
 from domain.user.models import UserDTO
+from domain.pydantic.paginate import PaginationDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
 from usecases.link.create.abstract import AbstractCreateLinkUseCase
@@ -50,26 +53,45 @@ async def redirect_link(short_url: str,
 
 
 @router.get("/me", response_model=ListLinksSchema)
+@limiter.limit("100/minute")
 async def links_me(
+    request: Request,
+    paginate: Pagination = Depends(),
     user: UserDTO | None = Depends(get_current_user_optional),
     usecase: AbstractGetMeLinksUseCase = Depends(get_me_links_use_case)
 ) -> JSONResponse:
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You must be signed in to access")
+
+    paginate_dto = PaginationDTO(limit=paginate.limit, offset=paginate.offset)
+
     try:
-        links = await usecase.execute(user.id)
+        links, total = await usecase.execute(user_id=user.id, paginate=paginate_dto)
     except UserNotFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     except TokenNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
 
-    schemas = [_to_schema(link).model_dump(mode="json") for link in links]
+    schemas = [
+        LinkShortSchema(
+            url=link.url,
+            short_url=link.short_url,
+            total=link.total,
+            is_active=link.is_active,
+            expires_at=link.expires_at,
+        ).model_dump(mode="json") for link in links
+    ]
 
-    return JSONResponse(schemas, status_code=status.HTTP_200_OK)
+    return JSONResponse(ListLinksSchema(
+        items=schemas,
+        total=total,
+        offset=paginate.offset,
+        limit=paginate.limit,
+    ).model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
 @router.delete("/{short_url}", response_model=LinkSchema)
-@limiter.limit("30/hour")
+@limiter.limit("300/hour")
 async def delete_link(
     request: Request,
     short_url: str,

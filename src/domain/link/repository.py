@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from ..pydantic.paginate import PaginationDTO
 from ..repositories.abstract import AbstractRepository
 from .models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
 from .exceptions import LinkNotFoundError
@@ -20,7 +21,7 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
         raise LinkNotFoundError
 
     @abstractmethod
-    def list_me(self, user_id: int) -> List[LinkDTO]:
+    def list_me(self, user_id: int, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
         raise LinkNotFoundError
 
     @abstractmethod
