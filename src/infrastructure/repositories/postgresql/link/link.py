@@ -1,14 +1,15 @@
 import re
-from typing import List
+from typing import List, Tuple
 from datetime import datetime, UTC, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import  select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.exc import IntegrityError
 
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist, LinkIsExpires
 from domain.link.repository import AbstractLinkRepository
 from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
+from domain.pydantic.paginate import PaginationDTO
 from domain.user.exceptions import AccessDenied
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
 
@@ -82,22 +83,24 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         return self._to_domain(db_link)
 
 
-    async def list_me(self, user_id: int) -> List[LinkDTO]:
+    async def list_me(self, user_id: int, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
+        count_stmt = select(func.count()).where(LinkModel.user_id == user_id)
+        total = (await self._session.execute(count_stmt)).scalar()
+
+        if not total:
+            return [], 0
+
         stmt = (
             (select(LinkModel)
             .where(LinkModel.user_id == user_id))
+            .offset(paginate.offset)
+            .limit(paginate.limit)
             .order_by(LinkModel.id.desc())
         )
         result = await self._session.execute(stmt)
         links = result.scalars().all()
 
-        if not links:
-            raise []
-
-        links_dto = [
-            self._to_domain(link) for link in links
-        ]
-        return links_dto
+        return [self._to_domain(link) for link in links], total
 
 
     async def delete_by_user(self,  short_url: str, user_id: int) -> None:
