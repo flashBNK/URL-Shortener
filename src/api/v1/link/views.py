@@ -1,9 +1,10 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
+from utils.obfuscate_ip import obfuscate_ip
 from api.pydantic.paginate import Pagination
 from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, UpdateLinkSchema, \
-    ListLinksSchema, LinkShortSchema
+    ListLinksSchema, LinkShortSchema, ListLinkClicksSchema, LinkClickSchema
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError, LinkIsExpires, LinkAlreadyExist
 from domain.token.exceptions import TokenNotFoundError
 from domain.user.exceptions import UserNotFound, AccessDenied
@@ -11,6 +12,7 @@ from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
 from domain.user.models import UserDTO
 from domain.pydantic.paginate import PaginationDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
+from usecases.link.get_list_clicks.abstract import AbstractGetLinkClicksUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
 from usecases.link.create.abstract import AbstractCreateLinkUseCase
 from usecases.link.group_by_country.abstract import AbstractGroupByCountryLinkUseCase
@@ -19,7 +21,7 @@ from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
 from usecases.link.update.implementation import AbstractUpdateLinkUseCase
 from .dependencies import (find_by_short_url_link_use_case, create_link_use_case, redirect_link_use_case,
                            stats_link_use_case, get_me_links_use_case, delete_link_use_case,
-                           update_link_use_case)
+                           update_link_use_case, get_link_clicks_use_case)
 from api.v1.user.dependencies import get_current_user_optional
 
 from limiter import limiter, get_anon_key, get_auth_key
@@ -72,18 +74,18 @@ async def links_me(
     except TokenNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
 
-    schemas = [
+    items = [
         LinkShortSchema(
             url=link.url,
             short_url=link.short_url,
             total=link.total,
             is_active=link.is_active,
             expires_at=link.expires_at,
-        ).model_dump(mode="json") for link in links
+        ) for link in links
     ]
 
     return JSONResponse(ListLinksSchema(
-        items=schemas,
+        items=items,
         total=total,
         offset=paginate.offset,
         limit=paginate.limit,
@@ -179,23 +181,68 @@ async def create_link(
     return JSONResponse(_to_schema(link).model_dump(mode="json"), status_code=status.HTTP_201_CREATED)
 
 
+@router.get("/{short_url}/clicks", response_model=ListLinkClicksSchema)
+@limiter.limit("100/minute")
+async def list_clicks(
+    request: Request,
+    short_url: str,
+    paginate: Pagination = Depends(),
+    user: UserDTO | None = Depends(get_current_user_optional),
+    usecase: AbstractGetLinkClicksUseCase = Depends(get_link_clicks_use_case)
+) -> JSONResponse:
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You must be signed in to access")
+
+    paginate_dto = PaginationDTO(limit=paginate.limit, offset=paginate.offset)
+
+    try:
+        clicks, total = await usecase.execute(short_url=short_url, user_id=user.id, paginate=paginate_dto)
+    except LinkNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    except AccessDenied as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+
+    items = [
+        LinkClickSchema(
+            ip=obfuscate_ip(click.ip),
+            country=click.country,
+            user_agent=click.user_agent,
+            clicked_at=click.clicked_at,
+        ) for click in clicks
+    ]
+
+    return JSONResponse(ListLinkClicksSchema(
+        items=items,
+        total=total,
+        offset=paginate.offset,
+        limit=paginate.limit,
+    ).model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
 @router.get("/{short_url}/stats", response_model=LinkSchema)
 @limiter.limit("10/minute", key_func=get_anon_key)
 @limiter.limit("100/minute", key_func=get_auth_key)
 async def stats_link(
         request: Request,
         short_url: str,
+        user: UserDTO | None = Depends(get_current_user_optional),
         usecase: AbstractGroupByCountryLinkUseCase = Depends(stats_link_use_case),
 ):
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You must be signed in to access")
     try:
-        stats_link_dto = await usecase.execute(short_url)
+        stats_link_dto = await usecase.execute(short_url, user.id)
     except LinkNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    except AccessDenied as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
 
     schema = GroupByCountryLinkSchema(
         link_id=stats_link_dto.link_id,
         total=stats_link_dto.total,
         by_country=stats_link_dto.by_country,
+        clicks_by_device=stats_link_dto.clicks_by_device,
+        clicks_by_date=stats_link_dto.clicks_by_date,
     )
 
     return JSONResponse(schema.model_dump(mode="json"), status_code=status.HTTP_200_OK)

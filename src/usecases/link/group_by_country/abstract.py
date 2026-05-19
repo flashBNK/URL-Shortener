@@ -4,5 +4,5 @@ from domain.link.models import GroupByCountryLinkDTO
 
 class AbstractGroupByCountryLinkUseCase(ABC):
     @abstractmethod
-    async def execute(self, short_url: str) -> GroupByCountryLinkDTO:
+    async def execute(self, short_url: str, user_id: int) -> GroupByCountryLinkDTO:
         ...

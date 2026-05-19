@@ -13,6 +13,6 @@ class PostgreSQLGetMeLinksUseCase(AbstractGetMeLinksUseCase):
     async def execute(self, user_id: int, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
 
         async with self._uow as uow:
-            links = await uow.repository.list_me(user_id, paginate)
+            links, total = await uow.repository.list_me(user_id, paginate)
 
-        return links
+        return links, total
