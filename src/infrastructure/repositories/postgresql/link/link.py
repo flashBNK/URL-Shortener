@@ -55,6 +55,20 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         return self._to_domain(link)
 
 
+    async def find_by_short_url_and_check(self, short_url: str, user_id: int) -> LinkDTO:
+        result = await self._session.execute(
+            select(LinkModel).where(LinkModel.short_url == short_url)
+        )
+        link = result.scalar_one_or_none()
+
+        if link is None:
+            raise LinkNotFoundError()
+        if link.user_id != user_id:
+            raise AccessDenied()
+
+        return self._to_domain(link)
+
+
     async def create(self, dto: CreateLinkDTO) -> LinkDTO:
         if dto.user_id:
             expires_at = None

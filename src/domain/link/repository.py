@@ -32,6 +32,9 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
     def update_by_short_url(self, short_url: str, user_id: int, dto: UpdateLinkDTO) -> LinkDTO:
         raise LinkNotFoundError
 
+    def find_by_short_url_and_check(self, short_url: str, user_id: int) -> LinkDTO:
+        raise LinkNotFoundError
+
     # @abstractmethod
     # async def find_by_filters(self, link_filters: LinkFilterDTO) -> List[LinkDTO]:
     #     raise LinkNotFoundError

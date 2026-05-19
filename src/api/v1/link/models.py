@@ -56,7 +56,22 @@ class ListLinksSchema(BaseModel):
     limit: int
     offset: int
 
+
+class LinkClickSchema(BaseModel):
+    ip: str
+    country: str | None
+    user_agent: str | None
+    clicked_at: datetime
+
+class ListLinkClicksSchema(BaseModel):
+    items: list[LinkClickSchema]
+    total: int
+    limit: int
+    offset: int
+
 class GroupByCountryLinkSchema(BaseModel):
     link_id: int
     total: int
     by_country: dict
+    clicks_by_device: dict
+    clicks_by_date: dict

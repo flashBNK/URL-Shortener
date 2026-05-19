@@ -50,3 +50,5 @@ class GroupByCountryLinkDTO:
     link_id: int
     total: int
     by_country: dict
+    clicks_by_device: dict
+    clicks_by_date: dict

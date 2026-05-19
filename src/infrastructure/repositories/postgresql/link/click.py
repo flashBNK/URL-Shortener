@@ -2,9 +2,10 @@ from datetime import datetime, UTC
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from domain.link.models import CreateLinkClickDTO, LinkClickDTO
+from domain.pydantic.paginate import PaginationDTO
 from infrastructure.databases.postgresql.models.link_click import LinkClick as LinkClickModel
 
 
@@ -41,6 +42,26 @@ class PostgreSQLLinkClickRepository:
         link_cliks = result.scalars().all()
 
         return [self._to_domain(link_clik) for link_clik in link_cliks]
+
+
+    async def list_by_short_url(self, link_id: int, paginate: PaginationDTO | None) -> tuple[List[LinkClickDTO], int]:
+        count_stmt = select(func.count()).where(LinkClickModel.link_id == link_id)
+        total = (await self._session.execute(count_stmt)).scalar()
+
+        if not total:
+            return [], 0
+
+        stmt = (
+            (select(LinkClickModel)
+            .where(LinkClickModel.link_id == link_id))
+            .offset(paginate.offset)
+            .limit(paginate.limit)
+            .order_by(LinkClickModel.id.desc())
+        )
+        result = await self._session.execute(stmt)
+        clicks = result.scalars().all()
+
+        return [self._to_domain(click) for click in clicks], total
 
 
     @staticmethod
