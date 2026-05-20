@@ -1,24 +1,29 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from usecases.user.delete.abstract import AbstractDeleteUserUseCase
+from .models import CreateUserSchema, UserSchema, UpdateUserSchema, ChangePasswordSchema, PasswordSchema
 from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
-from .models import CreateUserSchema, UserSchema
-from domain.user.models import CreateUserDTO, UserDTO
-from domain.user.exceptions import UserNotFound
-from .dependencies import create_user_use_case, get_user_use_case, security_scheme
+from domain.user.models import CreateUserDTO, UserDTO, UserUpdateDTO, ChangePasswordDTO, PasswordDTO
+from domain.user.exceptions import UserNotFound, WrongPasswordError, UserIsExist
+from .dependencies import (create_user_use_case, get_user_use_case, security_scheme,
+                           get_current_user_optional, update_user_use_case, change_password_user_use_case,
+                           delete_user_use_case)
 from api.v1.auth.dependencies import get_user_by_token_use_case
+from usecases.user.change_password.abstract import AbstractChangePasswordUserUseCase
 from usecases.user.create.abstract import AbstractCreateUserUseCase
 from usecases.user.get.abstract import AbstractGetUserUseCase
 from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseCase
-from infrastructure.repositories.postgresql.user.exceptions import UserIsExist
+from usecases.user.update.abstract import AbstractUpdateUserUseCase
 
 from limiter import limiter
+from ..auth.models import LoginUserSchema
 
 router = APIRouter(prefix="/user")
 
 
-@router.post("/", response_model=UserSchema)
+@router.post("", response_model=UserSchema)
 @limiter.limit("5/hour")
 async def create_user(
         request: Request,
@@ -66,6 +71,87 @@ async def get_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
     return JSONResponse(_to_schema(user).model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@router.patch("", response_model=UserSchema)
+@limiter.limit("30/hour")
+async def update_user(
+    request: Request,
+    payload: UpdateUserSchema,
+    user: UserDTO | None = Depends(get_current_user_optional),
+    usecase: AbstractUpdateUserUseCase = Depends(update_user_use_case)
+) -> JSONResponse:
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to modify this object.")
+
+    dto = UserUpdateDTO(
+        email=payload.email,
+        username=payload.username,
+    )
+
+    try:
+        user = await usecase.execute(user.id, dto)
+    except UserNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    except UserIsExist as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+
+    return JSONResponse(_to_schema(user).model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@router.put("/change-password", response_model=ChangePasswordSchema)
+@limiter.limit("30/hour")
+async def change_password(
+    request: Request,
+    payload: ChangePasswordSchema,
+    user: UserDTO | None = Depends(get_current_user_optional),
+    usecase: AbstractChangePasswordUserUseCase = Depends(change_password_user_use_case)
+):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to modify this object.")
+
+    dto = ChangePasswordDTO(
+        current_password=payload.current_password,
+        new_password=payload.new_password,
+    )
+
+    try:
+        await usecase.execute(user.id, dto)
+    except UserNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    except UserIsExist as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except WrongPasswordError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("")
+@limiter.limit("30/hour")
+async def delete_user(
+    request: Request,
+    schema: PasswordSchema,
+    user: UserDTO | None = Depends(get_current_user_optional),
+    usecase: AbstractDeleteUserUseCase = Depends(delete_user_use_case)
+):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to modify this object.")
+
+    dto = PasswordDTO(current_password=schema.current_password)
+
+    try:
+        await usecase.execute(user.id, dto)
+    except UserNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except WrongPasswordError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def _to_schema(dto: UserDTO):

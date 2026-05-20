@@ -15,6 +15,8 @@ class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
 
         async with self._uow as uow:
             link = await uow.repository.redirect(short_url)
+            if not link.is_active:
+                raise
             await uow.click_repository.create(CreateLinkClickDTO(
                 country=country,
                 user_agent=user_agent,

@@ -2,7 +2,7 @@ from typing import List
 from abc import ABC, abstractmethod
 
 from domain.link.models import LinkDTO
-from domain.pydantic.paginate import PaginationDTO
+from domain.pagination.paginate import PaginationDTO
 
 
 class AbstractGetMeLinksUseCase(ABC):

@@ -5,12 +5,14 @@ from utils.obfuscate_ip import obfuscate_ip
 from api.pydantic.paginate import Pagination
 from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, UpdateLinkSchema, \
     ListLinksSchema, LinkShortSchema, ListLinkClicksSchema, LinkClickSchema
-from domain.link.exceptions import LinkNotFoundError, LinkIsExist, InvalidUrlError, UnsafeUrlError, LinkIsExpires, LinkAlreadyExist
+from domain.link.exceptions import (LinkNotFoundError, LinkIsExist, InvalidUrlError,
+                                    UnsafeUrlError, LinkIsExpires, LinkAlreadyExist,
+                                    LinkIsNotActive)
 from domain.token.exceptions import TokenNotFoundError
 from domain.user.exceptions import UserNotFound, AccessDenied
 from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
 from domain.user.models import UserDTO
-from domain.pydantic.paginate import PaginationDTO
+from domain.pagination.paginate import PaginationDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
 from usecases.link.get_list_clicks.abstract import AbstractGetLinkClicksUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
@@ -46,6 +48,8 @@ async def redirect_link(short_url: str,
     user_agent = request.headers.get("User-Agent")
     try:
         link = await usecase.execute(short_url, ip=ip, user_agent=user_agent)
+    except LinkIsNotActive:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     except LinkNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
     except LinkIsExpires as exc:
@@ -92,7 +96,7 @@ async def links_me(
     ).model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
-@router.delete("/{short_url}", response_model=LinkSchema)
+@router.delete("/{short_url}")
 @limiter.limit("300/hour")
 async def delete_link(
     request: Request,

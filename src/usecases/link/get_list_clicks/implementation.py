@@ -1,7 +1,7 @@
 from typing import List
 
 from domain.link.models import LinkClickDTO
-from domain.pydantic.paginate import PaginationDTO
+from domain.pagination.paginate import PaginationDTO
 
 from .abstract import AbstractGetLinkClicksUseCase
 
