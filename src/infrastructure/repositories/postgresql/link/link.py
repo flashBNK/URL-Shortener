@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from domain.link.exceptions import LinkNotFoundError, LinkIsExist, LinkIsExpires
 from domain.link.repository import AbstractLinkRepository
 from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
-from domain.pydantic.paginate import PaginationDTO
+from domain.pagination.paginate import PaginationDTO
 from domain.user.exceptions import AccessDenied
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
 
@@ -101,7 +101,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         count_stmt = select(func.count()).where(LinkModel.user_id == user_id)
         total = (await self._session.execute(count_stmt)).scalar()
 
-        if not total:
+        if not total or not paginate:
             return [], 0
 
         stmt = (

@@ -9,8 +9,11 @@ from domain.user.models import UserDTO
 from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
 from api.v1.auth.dependencies import get_user_by_token_use_case
 
-from usecases.user.create.implementation import PostgreSQLCreateLinkUseCase
-from usecases.user.get.implementation import PostgreSQLGetLinkUseCase
+from usecases.user.change_password.implementation import PostgreSQLChangePasswordUserUseCase
+from usecases.user.create.implementation import PostgreSQLCreateUserUseCase
+from usecases.user.delete.implementation import PostgreSQLDeleteUserUseCase
+from usecases.user.get.implementation import PostgreSQLGetUserUseCase
+from usecases.user.update.implementation import PostgreSQLUpdateUserUseCase
 
 
 security_scheme = HTTPBearer(auto_error=False, scheme_name="Bearer")
@@ -26,14 +29,35 @@ def create_user_use_case(
     session: AsyncSession = Depends(get_async_session)
 ):
     uow = get_user_unit_of_work(session=session)
-    return PostgreSQLCreateLinkUseCase(uow=uow)
+    return PostgreSQLCreateUserUseCase(uow=uow)
 
 
 def get_user_use_case(
     session: AsyncSession = Depends(get_async_session)
 ):
     uow = get_user_unit_of_work(session=session)
-    return PostgreSQLGetLinkUseCase(uow=uow)
+    return PostgreSQLGetUserUseCase(uow=uow)
+
+
+def update_user_use_case(
+    session: AsyncSession = Depends(get_async_session)
+):
+    uow = get_user_unit_of_work(session=session)
+    return PostgreSQLUpdateUserUseCase(uow=uow)
+
+
+def change_password_user_use_case(
+    session: AsyncSession = Depends(get_async_session)
+):
+    uow = get_user_unit_of_work(session=session)
+    return PostgreSQLChangePasswordUserUseCase(uow=uow)
+
+
+def delete_user_use_case(
+    session: AsyncSession = Depends(get_async_session)
+):
+    uow = get_user_unit_of_work(session=session)
+    return PostgreSQLDeleteUserUseCase(uow=uow)
 
 
 async def get_current_user_optional(

@@ -20,24 +20,24 @@ class CreateLinkSchema(BaseModel):
     @field_validator("custom_alias")
     @classmethod
     def validate_custom_alias(cls, value: str | None) -> str | None:
-        value = value.strip()
         if value is None:
             return value
+        value = value.strip()
         if not 4 <= len(value) <= 12:
             raise ValueError("short url must be between 4 and 12 characters")
         return value
 
 class UpdateLinkSchema(BaseModel):
-    short_url: Optional[str]
-    is_active: Optional[bool]
-    expires_at: Optional[datetime]
+    short_url: Optional[str] = None
+    is_active: Optional[bool] = None
+    expires_at: Optional[datetime] = None
 
     @field_validator("short_url")
     @classmethod
     def validate_short_url(cls, value: str | None) -> str | None:
-        value = value.strip()
         if value is None:
             return value
+        value = value.strip()
         if not 4 <= len(value) <= 12:
             raise ValueError("short url must be between 4 and 12 characters")
         return value

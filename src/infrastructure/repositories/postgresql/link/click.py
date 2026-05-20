@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from domain.link.models import CreateLinkClickDTO, LinkClickDTO
-from domain.pydantic.paginate import PaginationDTO
+from domain.pagination.paginate import PaginationDTO
 from infrastructure.databases.postgresql.models.link_click import LinkClick as LinkClickModel
 
 

@@ -6,12 +6,11 @@ from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 
 from domain.token.models import LoginUserDTO
-from domain.user.exceptions import UserNotFound
+from domain.user.exceptions import UserNotFound, WrongPasswordError, UserIsExist
 from domain.user.repository import AbstractUserRepository
-from domain.user.models import UserDTO, CreateUserDTO, UserUpdateDTO
+from domain.user.models import UserDTO, CreateUserDTO, UserUpdateDTO, ChangePasswordDTO, PasswordDTO
 from infrastructure.databases.postgresql.models.user import User as UserModel
-from .exceptions import UserIsExist
-from api.v1.user.crypto import context
+from domain.user.crypto import context
 
 
 class PostgreSQLUserRepository(AbstractUserRepository):
@@ -49,7 +48,58 @@ class PostgreSQLUserRepository(AbstractUserRepository):
         return self._to_domain(user_db)
 
     async def update(self, user_id: int, dto: UserUpdateDTO) -> UserDTO:
-        pass
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        user = result.scalar_one_or_none()
+        if not user:
+            raise UserNotFound()
+
+        if dto.email is not None:
+            user.email = dto.email
+        if dto.username is not None:
+            user.username = dto.username
+
+        try:
+            await self._session.flush()
+        except IntegrityError as e:
+            pattern = r'Key \((.*?)\)=\((.*?)\)'
+            match = re.search(pattern, str(e))
+            columns = [col.strip() for col in match.group(1).split(',')]
+            values = [val.strip() for val in match.group(2).split(',')]
+
+            raise UserIsExist(field=columns[0], value=values[0])
+
+        return self._to_domain(user)
+
+
+    async def change_password(self, user_id: int, dto: ChangePasswordDTO) -> None:
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise UserNotFound()
+
+        if not context.verify(dto.current_password, user.password):
+            raise WrongPasswordError()
+
+        user.password = context.hash(dto.new_password)
+        await self._session.flush()
+
+
+    async def delete_and_check_password(self, user_id: int, dto: PasswordDTO) -> None:
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise UserNotFound()
+        if not context.verify(dto.current_password, user.password):
+            raise WrongPasswordError()
+
+        await self._session.delete(user)
+        await self._session.flush()
+
 
     async def delete(self, user_id: int) -> None:
         pass

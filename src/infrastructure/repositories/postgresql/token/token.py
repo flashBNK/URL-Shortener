@@ -103,16 +103,12 @@ class PostgreSQLTokenRepository(AbstractTokenRepository):
 
 
     async def delete(self, token_id: int) -> None:
-        await self._session.delete(TokenModel(token_id))
-        await self._session.flush()
+        pass
 
 
     async def delete_by_user_id(self, user_id: int) -> None:
-        try:
-            stmt = delete(TokenModel).where(TokenModel.user_id == user_id)
-            await self._session.execute(stmt)
-        except Exception:
-            raise TokenNotFoundError()
+        stmt = delete(TokenModel).where(TokenModel.user_id == user_id)
+        await self._session.execute(stmt)
 
 
     async def _create_and_flush_token(self, user_id: int) -> TokenDTO:

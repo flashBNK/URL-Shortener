@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ..pydantic.paginate import PaginationDTO
+from ..pagination.paginate import PaginationDTO
 from ..repositories.abstract import AbstractRepository
 from .models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
 from .exceptions import LinkNotFoundError

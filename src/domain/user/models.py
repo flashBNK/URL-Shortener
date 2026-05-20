@@ -24,4 +24,14 @@ class UserDTO:
 class UserUpdateDTO:
     username: Optional[str] = None
     email: Optional[str] = None
-    password: Optional[str] = None
+
+
+@dataclass(slots=True)
+class ChangePasswordDTO:
+    current_password: str
+    new_password: str
+
+
+@dataclass(slots=True)
+class PasswordDTO:
+    current_password: str

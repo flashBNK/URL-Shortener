@@ -2,7 +2,7 @@ from domain.user.models import UserDTO, UserUpdateDTO, CreateUserDTO
 from .abstract import AbstractCreateUserUseCase
 
 
-class PostgreSQLCreateLinkUseCase(AbstractCreateUserUseCase):
+class PostgreSQLCreateUserUseCase(AbstractCreateUserUseCase):
     def __init__(self, uow):
         self._uow = uow
 

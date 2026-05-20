@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from ..repositories.abstract import AbstractRepository
-from .models import UserDTO, UserUpdateDTO, CreateUserDTO
+from .models import UserDTO, UserUpdateDTO, CreateUserDTO, ChangePasswordDTO, PasswordDTO
 from domain.token.models import LoginUserDTO
 from .exceptions import UserNotFound
 
@@ -14,6 +13,14 @@ class AbstractUserRepository(AbstractRepository[UserDTO, int, CreateUserDTO, Use
 
     @abstractmethod
     def get_by_credentials(self, dto: LoginUserDTO) -> UserDTO:
+        raise UserNotFound
+
+    @abstractmethod
+    def change_password(self, user_id: int, dto: ChangePasswordDTO) -> None:
+        raise UserNotFound
+
+    @abstractmethod
+    def delete_and_check_password(self, user_id: int, dto: PasswordDTO) -> None:
         raise UserNotFound
 
     # @abstractmethod
