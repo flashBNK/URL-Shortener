@@ -20,6 +20,10 @@ class AbstractTokenRepository(AbstractRepository[TokenDTO, int, CreateTokenDTO, 
         raise TokenNotFoundError
 
     @abstractmethod
+    def delete_by_access_token(self, access_token: str) -> None:
+        raise TokenNotFoundError
+
+    @abstractmethod
     def create(self, dto: UserDTO) -> TokenDTO:
         raise TokenNotFoundError
 

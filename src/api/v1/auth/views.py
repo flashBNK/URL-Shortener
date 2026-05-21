@@ -1,9 +1,11 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
+from fastapi.security import HTTPAuthorizationCredentials
 
+from usecases.token.revoke_all_tokens.abstract import AbstractRevokeAllTokensUseCase
 from .models import LoginUserSchema, RefreshTokenSchema, TokenSchema
 from api.v1.user.models import UserSchema
-from api.v1.user.dependencies import get_current_user_optional
+from api.v1.user.dependencies import get_current_user_optional, security_scheme
 from domain.user.models import UserDTO
 from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
 from domain.user.exceptions import UserNotFound
@@ -11,7 +13,8 @@ from domain.token.models import LoginUserDTO, RefreshTokenDTO
 from usecases.token.create.abstract import AbstractCreateTokenUseCase
 from usecases.token.refresh.abstract import AbstractRefreshTokenUseCase
 from usecases.token.logout.abstract import AbstractLogoutTokenUseCase
-from .dependencies import create_token_use_case, refresh_token_use_case, logout_token_use_case
+from .dependencies import (create_token_use_case, refresh_token_use_case, logout_token_use_case,
+                           revoke_all_tokens_use_case)
 
 from limiter import limiter
 
@@ -67,13 +70,25 @@ async def refresh(
         access_token_expires_in=token.access_token_expires_in,
     )
 
-    return JSONResponse(schema.model_dump(mode="json"), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(schema.model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
-@router.post("/logout", response_model=UserSchema)
+@router.post("/logout")
 async def logout(
-    user: UserDTO = Depends(get_current_user_optional),
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
     usecase: AbstractLogoutTokenUseCase = Depends(logout_token_use_case)
+) -> Response:
+    access_token = credentials.credentials
+
+    await usecase.execute(access_token)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/revoke-all")
+async def revoke_all(
+    user: UserDTO = Depends(get_current_user_optional),
+    usecase: AbstractRevokeAllTokensUseCase = Depends(revoke_all_tokens_use_case)
 ) -> Response:
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not authorized.")

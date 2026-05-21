@@ -18,7 +18,7 @@ class CreateUserSchema(BaseModel):
         value = value.strip()
         if not 3 < len(value) < 32:
             raise ValueError("Username must be between 3 and 32 characters")
-        if not re.match(r"^[a-zA-Z0-9_]+$", value):
+        if not re.match(r"^[a-zA-Z0-9_а-яА-ЯёЁ]+$", value):
             raise ValueError("Username can only contain letters, digits and underscores")
         return value
 
@@ -30,14 +30,6 @@ class CreateUserSchema(BaseModel):
         if not any(char.isdigit() for char in value):
             raise ValueError("Password must contain at least one digit")
         return value
-
-    def set_password(self):
-        self.password = context.hash(self.password)
-
-    @model_validator(mode="after")
-    def check_password(self) -> "CreateUserSchema":
-        self.set_password()
-        return self
 
 
 class UserSchema(BaseModel):

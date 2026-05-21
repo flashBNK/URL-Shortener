@@ -15,6 +15,7 @@ from domain.user.models import UserDTO
 from domain.pagination.paginate import PaginationDTO
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
 from usecases.link.get_list_clicks.abstract import AbstractGetLinkClicksUseCase
+from usecases.link.list_public_links.abstract import AbstractListPublicLinksUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
 from usecases.link.create.abstract import AbstractCreateLinkUseCase
 from usecases.link.group_by_country.abstract import AbstractGroupByCountryLinkUseCase
@@ -23,7 +24,7 @@ from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
 from usecases.link.update.implementation import AbstractUpdateLinkUseCase
 from .dependencies import (find_by_short_url_link_use_case, create_link_use_case, redirect_link_use_case,
                            stats_link_use_case, get_me_links_use_case, delete_link_use_case,
-                           update_link_use_case, get_link_clicks_use_case)
+                           update_link_use_case, get_link_clicks_use_case, list_public_links_use_case)
 from api.v1.user.dependencies import get_current_user_optional
 
 from limiter import limiter, get_anon_key, get_auth_key
@@ -32,10 +33,40 @@ router = APIRouter(prefix="/link")
 short_router = APIRouter()
 
 
+@short_router.get("/public", response_model=ListLinksSchema)
+@limiter.limit("50/minute", key_func=get_anon_key)
+@limiter.limit("200/minute", key_func=get_auth_key)
+async def list_public_links(
+        request: Request,
+        paginate: Pagination = Depends(),
+        usecase: AbstractListPublicLinksUseCase = Depends(list_public_links_use_case),
+) -> JSONResponse:
+    paginate_dto = PaginationDTO(limit=paginate.limit, offset=paginate.offset)
+    links, total = await usecase.execute(paginate=paginate_dto)
+
+    items = [
+        LinkShortSchema(
+            url=link.url,
+            short_url=link.short_url,
+            total=link.total,
+            is_active=link.is_active,
+            expires_at=link.expires_at,
+        ) for link in links
+    ]
+
+    return JSONResponse(ListLinksSchema(
+        items=items,
+        total=total,
+        offset=paginate.offset,
+        limit=paginate.limit,
+    ).model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
 @short_router.get("/{short_url}", response_model=LinkSchema)
 @limiter.limit("20/minute", key_func=get_anon_key)
 @limiter.limit("200/minute", key_func=get_auth_key)
-async def redirect_link(short_url: str,
+async def redirect_link(
+        short_url: str,
         request: Request,
         usecase: AbstractRedirectLinkUseCase = Depends(redirect_link_use_case),
 ) -> RedirectResponse | HTTPException:

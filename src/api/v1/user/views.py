@@ -13,7 +13,6 @@ from .dependencies import (create_user_use_case, get_user_use_case, security_sch
 from api.v1.auth.dependencies import get_user_by_token_use_case
 from usecases.user.change_password.abstract import AbstractChangePasswordUserUseCase
 from usecases.user.create.abstract import AbstractCreateUserUseCase
-from usecases.user.get.abstract import AbstractGetUserUseCase
 from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseCase
 from usecases.user.update.abstract import AbstractUpdateUserUseCase
 
@@ -54,23 +53,10 @@ async def get_user_me(
         user = await usecase.execute(access_token)
     except (UserNotFound, TokenNotFoundError) as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-    except TokenExpiredError as exc:
+    except (TokenExpiredError, WrongPasswordError) as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
 
     return JSONResponse(_to_schema(user).model_dump(mode="json"))
-
-
-# @router.get("/{user_id}", response_model=UserSchema)
-async def get_user(
-    user_id: int,
-    usecase: AbstractGetUserUseCase = Depends(get_user_use_case),
-) -> JSONResponse:
-    try:
-        user = await usecase.execute(user_id)
-    except UserNotFound as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-
-    return JSONResponse(_to_schema(user).model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
 @router.patch("", response_model=UserSchema)
@@ -99,7 +85,7 @@ async def update_user(
     return JSONResponse(_to_schema(user).model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
-@router.put("/change-password", response_model=ChangePasswordSchema)
+@router.put("/change-password")
 @limiter.limit("30/hour")
 async def change_password(
     request: Request,

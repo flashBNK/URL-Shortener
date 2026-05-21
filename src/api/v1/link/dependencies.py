@@ -9,6 +9,7 @@ from services.geo import GeoService
 
 from usecases.link.find_by_short_url.implementation import PostgreSQLFindByShortUrlLinkUseCase
 from usecases.link.get_list_clicks.implementation import PostgreSQLGetLinkClicksUseCase
+from usecases.link.list_public_links.implementation import PostgreSQLListPublicLinksUseCase
 from usecases.link.redirect.implementation import PostgreSQLRedirectLinkUseCase
 from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
 from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
@@ -84,3 +85,10 @@ def get_link_clicks_use_case(
 ):
     uow = get_link_unit_of_work(session=session)
     return PostgreSQLGetLinkClicksUseCase(uow=uow)
+
+
+def list_public_links_use_case(
+    session: AsyncSession = Depends(get_async_session),
+):
+    uow = get_link_unit_of_work(session=session)
+    return PostgreSQLListPublicLinksUseCase(uow=uow)
