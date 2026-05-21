@@ -1,4 +1,3 @@
-from domain.user.exceptions import UserNotFoundError
 from domain.user.models import ChangePasswordDTO
 from .abstract import AbstractChangePasswordUserUseCase
 

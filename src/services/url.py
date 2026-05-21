@@ -48,7 +48,7 @@ class UrlService:
                                   status_code=response.status_code, is_active=result)
                         return result
                 except httpx.RequestError as e:
-                    print("HEAD failed:", e)
+                    pass
 
                 try:
                     async with client.stream("GET", url, headers=_HEADERS) as response:

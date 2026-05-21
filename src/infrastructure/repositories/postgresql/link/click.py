@@ -48,7 +48,7 @@ class PostgreSQLLinkClickRepository:
         count_stmt = select(func.count()).where(LinkClickModel.link_id == link_id)
         total = (await self._session.execute(count_stmt)).scalar()
 
-        if not total:
+        if not total or not paginate:
             return [], 0
 
         stmt = (

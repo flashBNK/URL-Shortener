@@ -110,6 +110,12 @@ class PostgreSQLTokenRepository(AbstractTokenRepository):
         stmt = delete(TokenModel).where(TokenModel.user_id == user_id)
         await self._session.execute(stmt)
 
+    async def delete_by_access_token(self, access_token: str) -> None:
+        hex_access_token = hash_token(access_token)
+
+        stmt = delete(TokenModel).where(TokenModel.access_token == hex_access_token)
+        await self._session.execute(stmt)
+
 
     async def _create_and_flush_token(self, user_id: int) -> TokenDTO:
         access_token = secrets.token_urlsafe(56)

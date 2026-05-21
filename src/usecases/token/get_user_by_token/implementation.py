@@ -1,5 +1,4 @@
-from domain.user.exceptions import UserNotFoundError
-from domain.user.models import UserDTO, UserUpdateDTO, CreateUserDTO
+from domain.user.models import UserDTO
 from .abstract import AbstractGetUserByTokenUseCase
 
 

@@ -25,6 +25,10 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
         raise LinkNotFoundError
 
     @abstractmethod
+    def list_public_links(self, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
+        raise LinkNotFoundError
+
+    @abstractmethod
     def delete_by_user(self,  short_url: str, user_id: int) -> None:
         raise LinkNotFoundError
 

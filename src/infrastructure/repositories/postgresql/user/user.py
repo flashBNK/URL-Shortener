@@ -22,7 +22,7 @@ class PostgreSQLUserRepository(AbstractUserRepository):
         db_user = UserModel(
             username=dto.username,
             email=dto.email,
-            password=dto.password,
+            password=context.hash(dto.password),
         )
 
         self._session.add(db_user)
@@ -38,14 +38,6 @@ class PostgreSQLUserRepository(AbstractUserRepository):
 
         return self._to_domain(db_user)
 
-
-    async def get(self, user_id: int) -> UserDTO:
-        user_db = await self._session.get(UserModel, user_id)
-
-        if user_db is None:
-            raise UserNotFound()
-
-        return self._to_domain(user_db)
 
     async def update(self, user_id: int, dto: UserUpdateDTO) -> UserDTO:
         stmt = select(UserModel).where(UserModel.id == user_id)
@@ -120,7 +112,7 @@ class PostgreSQLUserRepository(AbstractUserRepository):
 
         if verify:
             return self._to_domain(user)
-        raise UserNotFound()
+        raise WrongPasswordError()
 
     @staticmethod
     def _to_domain(user: UserModel) -> UserDTO:

@@ -117,6 +117,27 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         return [self._to_domain(link) for link in links], total
 
 
+
+    async def list_public_links(self, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
+        count_stmt = select(func.count()).where(LinkModel.user_id == None)
+        total = (await self._session.execute(count_stmt)).scalar()
+
+        if not total or not paginate:
+            return [], 0
+
+        stmt = (
+            (select(LinkModel)
+             .where(LinkModel.user_id == None))
+            .offset(paginate.offset)
+            .limit(paginate.limit)
+            .order_by(LinkModel.id.desc())
+        )
+        result = await self._session.execute(stmt)
+        links = result.scalars().all()
+
+        return [self._to_domain(link) for link in links], total
+
+
     async def delete_by_user(self,  short_url: str, user_id: int) -> None:
         stmt = select(LinkModel).where(LinkModel.short_url == short_url)
         result = await self._session.execute(stmt)
