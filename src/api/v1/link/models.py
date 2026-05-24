@@ -15,7 +15,7 @@ class LinkSchema(BaseModel):
 
 class CreateLinkSchema(BaseModel):
     url: str
-    custom_alias: Optional[str]
+    custom_alias: Optional[str] = None
 
     @field_validator("custom_alias")
     @classmethod

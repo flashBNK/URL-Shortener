@@ -5,6 +5,7 @@ from infrastructure.databases.postgresql.session_manager import DatabaseSessionM
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
 from infrastructure.repositories.postgresql.token.uow import PostgreSQLTokenUnitOfWork
 from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
+from infrastructure.redis.link_cache import LinkCache
 from services.geo import GeoService
 from services.url import UrlService
 from services.safe_browsing import SafeBrowsingService
@@ -15,6 +16,8 @@ class Container(DeclarativeContainer):
     url_service = Singleton(UrlService)
     geo_service = Singleton(GeoService)
     safe_browsing_service = Singleton(SafeBrowsingService, api_key=settings.app.safe_browsing_api_key.get_secret_value())
+
+    link_cache = Singleton(LinkCache)
 
     link_uow_factory = Factory(PostgreSQLLinkUnitOfWork)
 

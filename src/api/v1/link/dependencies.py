@@ -4,6 +4,7 @@ from dependency_injector.wiring import inject, Provide
 
 from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_link_unit_of_work
+from infrastructure.redis.link_cache import LinkCache
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
 from services.geo import GeoService
 
@@ -47,9 +48,10 @@ def create_link_use_case(
 def redirect_link_use_case(
     session: AsyncSession = Depends(get_async_session),
     geo_service: GeoService = Depends(Provide[Container.geo_service]),
+    cache: LinkCache = Depends(Provide[Container.link_cache]),
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLRedirectLinkUseCase(uow=uow, geo_service=geo_service)
+    return PostgreSQLRedirectLinkUseCase(uow=uow, geo_service=geo_service, cache=cache)
 
 
 def stats_link_use_case(
@@ -68,9 +70,10 @@ def get_me_links_use_case(
 
 def delete_link_use_case(
     session: AsyncSession = Depends(get_async_session),
+    cache: LinkCache = Depends(Provide[Container.link_cache]),
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLDeleteLinkUseCase(uow=uow)
+    return PostgreSQLDeleteLinkUseCase(uow=uow, cache=cache)
 
 
 def update_link_use_case(
