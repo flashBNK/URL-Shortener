@@ -43,8 +43,14 @@ class _DatabaseSettings(BaseSettings):
 
 
 class _Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR.parent / "config" / ".env",
+        extra="ignore",
+        # без env_prefix — читает REDIS_URL напрямую
+    )
     app: _AppSettings
     database: _DatabaseSettings
+    redis_url: str = "redis://localhost:6379/0"
 
     @classmethod
     def load(cls) -> "_Settings":

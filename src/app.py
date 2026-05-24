@@ -9,6 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from settings import settings
 from api.v1.routers import router
 from api.v1.link.views import short_router
+from infrastructure.redis.client import redis_client
 from container import Container
 from limiter import limiter
 from logger import setup_logging, get_logger
@@ -28,6 +29,9 @@ async def lifespan(app: FastAPI):
     sessionmanager = container.session_manager()
     sessionmanager.init(settings.database.get_database_url())
 
+    redis_client.init(settings.redis_url)
+    container.link_cache.reset()
+
 
     container.wire(
         modules=[
@@ -43,6 +47,7 @@ async def lifespan(app: FastAPI):
     finally:
         # --- shutdown: корректно закрываем пул соединений ---
         await sessionmanager.close()
+        await redis_client.close()
         log.info("application shutdown")
 
 

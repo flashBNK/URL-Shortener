@@ -7,9 +7,8 @@ from .models import CreateUserSchema, UserSchema, UpdateUserSchema, ChangePasswo
 from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
 from domain.user.models import CreateUserDTO, UserDTO, UserUpdateDTO, ChangePasswordDTO, PasswordDTO
 from domain.user.exceptions import UserNotFound, WrongPasswordError, UserIsExist
-from .dependencies import (create_user_use_case, get_user_use_case, security_scheme,
-                           get_current_user_optional, update_user_use_case, change_password_user_use_case,
-                           delete_user_use_case)
+from .dependencies import (create_user_use_case, security_scheme, get_current_user_optional,
+                           update_user_use_case, change_password_user_use_case, delete_user_use_case)
 from api.v1.auth.dependencies import get_user_by_token_use_case
 from usecases.user.change_password.abstract import AbstractChangePasswordUserUseCase
 from usecases.user.create.abstract import AbstractCreateUserUseCase

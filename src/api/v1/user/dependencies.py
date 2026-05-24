@@ -12,7 +12,6 @@ from api.v1.auth.dependencies import get_user_by_token_use_case
 from usecases.user.change_password.implementation import PostgreSQLChangePasswordUserUseCase
 from usecases.user.create.implementation import PostgreSQLCreateUserUseCase
 from usecases.user.delete.implementation import PostgreSQLDeleteUserUseCase
-from usecases.user.get.implementation import PostgreSQLGetUserUseCase
 from usecases.user.update.implementation import PostgreSQLUpdateUserUseCase
 
 
@@ -30,13 +29,6 @@ def create_user_use_case(
 ):
     uow = get_user_unit_of_work(session=session)
     return PostgreSQLCreateUserUseCase(uow=uow)
-
-
-def get_user_use_case(
-    session: AsyncSession = Depends(get_async_session)
-):
-    uow = get_user_unit_of_work(session=session)
-    return PostgreSQLGetUserUseCase(uow=uow)
 
 
 def update_user_use_case(

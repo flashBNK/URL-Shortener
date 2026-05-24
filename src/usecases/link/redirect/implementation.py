@@ -1,5 +1,7 @@
 from domain.link.models import LinkDTO, CreateLinkClickDTO
 from domain.link.exceptions import LinkIsNotActive
+from infrastructure.redis.link_cache import LinkCache
+from middlewares.log_middleware import log
 
 from .abstract import AbstractRedirectLinkUseCase
 
@@ -7,12 +9,28 @@ from services.geo import GeoService
 
 
 class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
-    def __init__(self, uow, geo_service: GeoService):
+    def __init__(self, uow, cache: LinkCache, geo_service: GeoService):
         self._uow = uow
+        self._cache = cache
         self._geo_service = geo_service
 
     async def execute(self, short_url: str, user_agent: str, ip: str) -> LinkDTO:
         country = await self._geo_service.get_country(ip=ip)
+
+        cached_link = await self._cache.get(short_url)
+
+
+        if cached_link:
+            log.debug("redirect cache hit", short_url=short_url)
+
+            async with self._uow as uow:
+                await uow.click_repository.create(CreateLinkClickDTO(
+                country=country,
+                user_agent=user_agent,
+                ip=ip,
+                link_id=cached_link.id,
+            ))
+            return cached_link
 
         async with self._uow as uow:
             link = await uow.repository.redirect(short_url)
