@@ -68,6 +68,7 @@ def get_me_links_use_case(
     return PostgreSQLGetMeLinksUseCase(uow=uow)
 
 
+@inject
 def delete_link_use_case(
     session: AsyncSession = Depends(get_async_session),
     cache: LinkCache = Depends(Provide[Container.link_cache]),
@@ -76,11 +77,13 @@ def delete_link_use_case(
     return PostgreSQLDeleteLinkUseCase(uow=uow, cache=cache)
 
 
+@inject
 def update_link_use_case(
     session: AsyncSession = Depends(get_async_session),
+    cache: LinkCache = Depends(Provide[Container.link_cache]),
 ):
     uow = get_link_unit_of_work(session=session)
-    return PostgreSQLUpdateLinkUseCase(uow=uow)
+    return PostgreSQLUpdateLinkUseCase(uow=uow, cache=cache)
 
 
 def get_link_clicks_use_case(

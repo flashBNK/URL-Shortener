@@ -13,3 +13,4 @@ class PostgreSQLDeleteLinkUseCase(AbstractDeleteLinkUseCase):
 
         async with self._uow as uow:
             await uow.repository.delete_by_user(user_id=user_id, short_url=short_url)
+        await self._cache.delete(short_url)

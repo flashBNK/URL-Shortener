@@ -28,9 +28,19 @@ class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
                 country=country,
                 user_agent=user_agent,
                 ip=ip,
-                link_id=cached_link.id,
+                link_id=cached_link["id"],
             ))
-            return cached_link
+
+            link = LinkDTO(
+                id=cached_link["id"],
+                short_url=short_url,
+                url=cached_link["url"],
+                user_id=cached_link["user_id"],
+                is_active=cached_link["is_active"],
+                total=cached_link["total"],
+                expires_at=cached_link["expires_at"],
+            )
+            return link
 
         async with self._uow as uow:
             link = await uow.repository.redirect(short_url)
@@ -42,5 +52,7 @@ class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
                 ip=ip,
                 link_id=link.id,
             ))
+
+            await self._cache.set(short_url, link)
 
         return link

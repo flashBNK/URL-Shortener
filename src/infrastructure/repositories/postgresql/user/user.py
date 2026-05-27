@@ -99,6 +99,9 @@ class PostgreSQLUserRepository(AbstractUserRepository):
     async def list(self, limit: int = 100, offset: int = 0) -> List[UserDTO]:
         pass
 
+    async def get(self, user_id: int) -> UserDTO:
+        pass
+
 
     async def get_by_credentials(self, dto: LoginUserDTO) -> UserDTO:
         query = select(UserModel).where(and_(UserModel.username == dto.username))

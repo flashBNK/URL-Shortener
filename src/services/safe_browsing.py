@@ -38,4 +38,4 @@ class SafeBrowsingService:
                 data = response.json()
                 return "matches" not in data
         except httpx.HTTPStatusError:
-            return False
+            return True
