@@ -4,11 +4,10 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from usecases.token.revoke_all_tokens.abstract import AbstractRevokeAllTokensUseCase
 from .models import LoginUserSchema, RefreshTokenSchema, TokenSchema
-from api.v1.user.models import UserSchema
 from api.v1.user.dependencies import get_current_user_optional, security_scheme
 from domain.user.models import UserDTO
-from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
-from domain.user.exceptions import UserNotFound
+from domain.token.exceptions import TokenNotFoundError
+from domain.user.exceptions import UserNotFound, WrongPasswordError
 from domain.token.models import LoginUserDTO, RefreshTokenDTO
 from usecases.token.create.abstract import AbstractCreateTokenUseCase
 from usecases.token.refresh.abstract import AbstractRefreshTokenUseCase
@@ -37,6 +36,8 @@ async def create_token(
         token = await usecase.execute(dto)
     except UserNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except WrongPasswordError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
 
 
     schema = TokenSchema(

@@ -7,10 +7,11 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from app import app
+from app import app, container
 from infrastructure.databases.postgresql.base import Base
 from infrastructure.databases.postgresql.session import get_async_session
 from api.v1.user.dependencies import get_current_user_optional
+from limiter import limiter
 
 
 def load_env_file(path: Path) -> None:
@@ -61,6 +62,18 @@ async def session(engine):
         await session.rollback()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def wire_container():
+    container.wire(
+        modules=[
+            "infrastructure.databases.postgresql.session",
+            "api.v1.link.dependencies",
+            "api.v1.user.dependencies",
+        ]
+    )
+    yield
+
+
 @pytest_asyncio.fixture()
 async def client(session):
     async def override_get_async_session():
@@ -73,8 +86,14 @@ async def client(session):
     app.dependency_overrides[get_current_user_optional] = override_get_current_user_optional
 
     transport = ASGITransport(app=app)
-
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
