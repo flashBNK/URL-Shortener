@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="added a test_short_code and test_safe_browsing">
-      <change afterPath="$PROJECT_DIR$/tests/integration/test_auth_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/integration/test_create_link.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/integration/test_redirect_link.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/integration/test_user_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/unit/test_url_service.py" afterDir="false" />
+    <list default="true" id="a5769e1b-83c5-422b-9b2d-d2210fa3ef1b" name="Changes" comment="added a test_create_link, test_redirect_link, test_user_api, test_auth_api, test_url_service and small fixes">
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_auth_logout.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_auth_refresh_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_auth_revoke_all_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_change_password_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_link_delete_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_link_find_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_link_public_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_link_update_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_links_me_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_user_delete_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_user_me_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/integration/test_user_update_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/auth/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/auth/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/link/dependencies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/integration/test_redirect_link.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/integration/test_redirect_link.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -251,7 +256,8 @@
       <workItem from="1779902418046" duration="1254000" />
       <workItem from="1779983039793" duration="9151000" />
       <workItem from="1780036096531" duration="4077000" />
-      <workItem from="1780321507426" duration="9422000" />
+      <workItem from="1780321507426" duration="9765000" />
+      <workItem from="1780413788893" duration="11221000" />
     </task>
     <task id="LOCAL-00001" summary="fix in work migrations and database. add first handler">
       <option name="closed" value="true" />
@@ -469,7 +475,15 @@
       <option name="project" value="LOCAL" />
       <updated>1780041182480</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="added a test_create_link, test_redirect_link, test_user_api, test_auth_api, test_url_service and small fixes">
+      <option name="closed" value="true" />
+      <created>1780336208434</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1780336208434</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -479,7 +493,6 @@
     <option featureType="com.intellij.fileTypeFactory" implementationName="Makefile" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added a redirect and a click counter" />
     <MESSAGE value="add url checking" />
     <MESSAGE value="add a check link for using Google Safe Browsing API" />
     <MESSAGE value="add link click stats" />
@@ -504,11 +517,12 @@
     <MESSAGE value="small change in redis for link" />
     <MESSAGE value="added a test base" />
     <MESSAGE value="added a test_short_code and test_safe_browsing" />
-    <option name="LAST_COMMIT_MESSAGE" value="added a test_short_code and test_safe_browsing" />
+    <MESSAGE value="added a test_create_link, test_redirect_link, test_user_api, test_auth_api, test_url_service and small fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="added a test_create_link, test_redirect_link, test_user_api, test_auth_api, test_url_service and small fixes" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/URL_Shortener$URL_Shortener.coverage" NAME="URL-Shortener Coverage Results" MODIFIED="1775924661770" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1780325542431" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/URL_Shortener$save_code.coverage" NAME="save_code Coverage Results" MODIFIED="1780423868665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/URL_Shortener$short_code.coverage" NAME="short_code Coverage Results" MODIFIED="1776242371671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/utils" />
     <SUITE FILE_PATH="coverage/URL_Shortener$test.coverage" NAME="test Coverage Results" MODIFIED="1776842469113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

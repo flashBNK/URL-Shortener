@@ -61,16 +61,29 @@ async def test_redirect_link_not_found(client):
 
 
 @pytest.mark.asyncio
-async def test_redirect_link_cache_hit(client):
+async def test_redirect_link_cache_hit(client, session):
 
-    cached_link = dict(
-        id=1,
+    link = Link(
+        short_url="cache123",
         url="https://example.com",
-        short_url="abc123",
         total=0,
         is_active=True,
         expires_at=None,
         user_id=None,
+    )
+
+    session.add(link)
+    await session.flush()
+    await session.commit()
+
+    cached_link = dict(
+        id=link.id,
+        url=link.url,
+        short_url=link.short_url,
+        total=link.total,
+        is_active=link.is_active,
+        expires_at=link.expires_at,
+        user_id=link.user_id,
     )
 
     with (
@@ -85,7 +98,7 @@ async def test_redirect_link_cache_hit(client):
     ):
 
         response = await client.get(
-            "/abc123",
+            "/cache123",
             follow_redirects=False,
         )
 
