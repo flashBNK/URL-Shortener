@@ -19,7 +19,6 @@ async def test_revoke_all_tokens_success(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",

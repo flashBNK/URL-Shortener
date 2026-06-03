@@ -15,7 +15,6 @@ async def test_login_user_success(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     response = await client.post(
         "/api/v1/auth/token",
@@ -51,7 +50,6 @@ async def test_login_user_wrong_password_returns_401(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     response = await client.post(
         "/api/v1/auth/token",

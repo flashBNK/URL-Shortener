@@ -1,4 +1,5 @@
 import pytest
+import httpx
 
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -63,3 +64,22 @@ async def test_safe_browsing_calls_external_api():
         await service.is_url_safe("https://example.com")
 
     mocked_post.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_safe_browsing_returns_true_when_api_fails():
+    """Если Google Safe Browsing API недоступен — считаем URL безопасным.
+    Это fail-open поведение: не блокировать пользователей из-за проблем на стороне Google.
+    """
+    service = SafeBrowsingService("api_key")
+
+    request = httpx.Request("POST", "https://safebrowsing.googleapis.com")
+    network_error = httpx.RequestError("Connection refused", request=request)
+
+    with patch(
+        "services.safe_browsing.httpx.AsyncClient.post",
+        new=AsyncMock(side_effect=network_error),
+    ):
+        result = await service.is_url_safe("https://example.com")
+
+    assert result is True

@@ -39,15 +39,13 @@ class UrlService:
                 follow_redirects=True,
                 verify=False,
             ) as client:
-                # Пробуем HEAD — быстро и без тела ответа
                 try:
                     response = await client.head(url, headers=_HEADERS)
-                    if response.status_code < 500:
-                        result = response.status_code < 500
+                    if response.status_code not in (405, 501):
                         log.debug("url check complete", url=url, method="HEAD",
-                                  status_code=response.status_code, is_active=result)
-                        return result
-                except httpx.RequestError as e:
+                                  status_code=response.status_code)
+                        return response.status_code < 500
+                except httpx.RequestError:
                     pass
 
                 try:

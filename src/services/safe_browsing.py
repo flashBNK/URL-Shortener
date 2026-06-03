@@ -1,5 +1,9 @@
 import httpx
 
+from logger import get_logger
+
+log = get_logger("services.safe_browsing")
+
 
 class SafeBrowsingService:
 
@@ -38,4 +42,8 @@ class SafeBrowsingService:
                 data = response.json()
                 return "matches" not in data
         except httpx.HTTPStatusError:
+            log.warning("safe browsing api error", url=url)
+            return True
+        except httpx.RequestError:
+            log.warning("safe browsing api unavailable", url=url)
             return True

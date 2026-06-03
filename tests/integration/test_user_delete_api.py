@@ -20,7 +20,6 @@ async def test_delete_user_success(client, session):
 
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -75,7 +74,6 @@ async def test_delete_user_wrong_password(client, session):
 
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",

@@ -35,7 +35,6 @@ async def test_change_password_returns_404(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     fake_usecase = AsyncMock()
     fake_usecase.execute.side_effect = UserNotFound()
@@ -69,7 +68,6 @@ async def test_change_password_returns_409(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     fake_usecase = AsyncMock()
     fake_usecase.execute.side_effect = UserIsExist(field="email", value="test@example.com")
@@ -103,7 +101,6 @@ async def test_change_password_returns_400(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     fake_usecase = AsyncMock()
     fake_usecase.execute.side_effect = ValueError("invalid password format")
@@ -137,7 +134,6 @@ async def test_change_password_returns_401(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     fake_usecase = AsyncMock()
     fake_usecase.execute.side_effect = WrongPasswordError()

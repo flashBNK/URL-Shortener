@@ -13,7 +13,6 @@ async def test_get_user_me_success(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -41,7 +40,7 @@ async def test_get_user_me_success(client, session):
 
 
 @pytest.mark.asyncio
-async def test_bad_get_user_me_success(client, session):
+async def test_get_me_returns_404_for_invalid_token(client, session):
     response = await client.get(
         "/api/v1/user/me",
         headers={"Authorization": f"Bearer None"},

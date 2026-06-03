@@ -17,7 +17,6 @@ async def test_update_user_success(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -81,7 +80,6 @@ async def test_update_user_conflict(client, session):
 
     session.add_all([user1, user2])
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",

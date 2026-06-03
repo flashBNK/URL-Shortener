@@ -7,7 +7,6 @@ from infrastructure.databases.postgresql.models.link import Link
 @pytest.mark.asyncio
 async def test_list_public_links_success(client, session):
     await session.execute(delete(Link))
-    await session.commit()
 
     link1 = Link(
         short_url="pub001",
@@ -28,7 +27,6 @@ async def test_list_public_links_success(client, session):
 
     session.add_all([link1, link2])
     await session.flush()
-    await session.commit()
 
     response = await client.get("public")
 

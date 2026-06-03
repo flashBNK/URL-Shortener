@@ -39,7 +39,6 @@ async def test_links_me_success(client, session):
 
     session.add(link2)
     session.add(link1)
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -91,7 +90,6 @@ async def test_links_me_empty_list(client, session):
     )
 
     session.add(user)
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",

@@ -106,3 +106,53 @@ async def test_check_url_active_returns_false_when_all_requests_fail():
         result = await service.check_url_active("https://example.com")
 
     assert result is False
+
+
+@pytest.mark.asyncio
+async def test_check_url_active_falls_back_to_get_when_head_returns_405():
+    service = UrlService()
+
+    head_response = Mock()
+    head_response.status_code = 405
+
+    get_response = Mock()
+    get_response.status_code = 200
+
+    stream_cm = AsyncMock()
+    stream_cm.__aenter__.return_value = get_response
+    stream_cm.__aexit__.return_value = None
+
+    mock_client = AsyncMock()
+    mock_client.head = AsyncMock(return_value=head_response)
+    mock_client.stream = Mock(return_value=stream_cm)
+
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__.return_value = mock_client
+    mock_context_manager.__aexit__.return_value = None
+
+    with patch("services.url.httpx.AsyncClient", return_value=mock_context_manager):
+        result = await service.check_url_active("https://example.com")
+
+    assert result is True
+    mock_client.head.assert_awaited_once()
+    mock_client.stream.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_check_url_active_returns_false_when_server_returns_500():
+    service = UrlService()
+
+    head_response = Mock()
+    head_response.status_code = 500
+
+    mock_client = AsyncMock()
+    mock_client.head = AsyncMock(return_value=head_response)
+
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__.return_value = mock_client
+    mock_context_manager.__aexit__.return_value = None
+
+    with patch("services.url.httpx.AsyncClient", return_value=mock_context_manager):
+        result = await service.check_url_active("https://example.com")
+
+    assert result is False

@@ -26,7 +26,6 @@ async def test_find_link_success(client, session):
     )
 
     session.add(link)
-    await session.commit()
 
     response = await client.get(
         "/api/v1/link/test123"

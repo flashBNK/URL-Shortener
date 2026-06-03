@@ -1,11 +1,13 @@
 import os
-from pathlib import Path
-
 import pytest
 import pytest_asyncio
+
+from pathlib import Path
+from dotenv import load_dotenv
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 
 from app import app, container
 from infrastructure.databases.postgresql.base import Base
@@ -14,20 +16,9 @@ from api.v1.user.dependencies import get_current_user_optional
 from limiter import limiter
 
 
-def load_env_file(path: Path) -> None:
-    if not path.exists():
-        raise FileNotFoundError(f"Missing env file: {path}")
-
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        os.environ[key.strip()] = value.strip().strip('"').strip("'")
-
 
 ROOT = Path(__file__).resolve().parents[1]
-load_env_file(ROOT / "config" / ".env.test")
+load_dotenv(ROOT / "config" / ".env.test")
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -97,3 +88,12 @@ def disable_rate_limit():
     limiter.enabled = False
     yield
     limiter.enabled = True
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def clean_database(engine):
+    async with engine.begin() as conn:
+        await conn.execute(text(
+            'TRUNCATE TABLE link_click, link, token, "user" RESTART IDENTITY CASCADE'
+        ))
+    yield

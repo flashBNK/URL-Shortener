@@ -30,7 +30,6 @@ async def test_update_link_success(client, session):
     )
 
     session.add(link)
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -115,7 +114,6 @@ async def test_update_link_access_denied(client, session):
     )
 
     session.add(link)
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
@@ -153,7 +151,6 @@ async def test_update_link_not_found(client, session):
     )
 
     session.add(user)
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",

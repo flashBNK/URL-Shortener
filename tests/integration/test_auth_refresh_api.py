@@ -15,7 +15,6 @@ async def test_refresh_token_success(client, session):
     )
     session.add(user)
     await session.flush()
-    await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/token",
