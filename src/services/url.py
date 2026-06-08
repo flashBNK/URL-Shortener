@@ -1,6 +1,7 @@
+from urllib.parse import urlparse
+
 import httpx
 
-from urllib.parse import urlparse
 from logger import get_logger
 
 log = get_logger("services.url")

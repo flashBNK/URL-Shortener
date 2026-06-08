@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, AfterValidator
 from typing import Annotated
+
+from pydantic import AfterValidator, BaseModel, Field
 
 
 def ensure_get_zero(num: int) -> int:

@@ -1,10 +1,17 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .link_click import LinkClick
+    from .user import User
+
 from datetime import datetime
 from typing import Optional
 
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Boolean
 
 from ..base import Base
+
 
 class Link(Base):
     __tablename__ = 'link'

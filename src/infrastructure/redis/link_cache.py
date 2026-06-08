@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from domain.link.models import LinkDTO
 from infrastructure.redis import client as redis_module
@@ -13,7 +14,14 @@ class LinkCache:
 
     async def get(self, short_url: str) -> dict | None:
         data = await redis_module.redis_client.client.get(self._key(short_url))
-        return json.loads(data) if data else None
+        if not data:
+            return None
+        parsed = json.loads(data)
+
+        if parsed.get("expires_at"):
+            parsed["expires_at"] = datetime.fromisoformat(parsed["expires_at"])
+
+        return parsed
 
     async def set(self, short_url: str, link: LinkDTO) -> None:
         data = json.dumps({
@@ -23,7 +31,7 @@ class LinkCache:
             "short_url": short_url,
             "total": link.total,
             "user_id": link.user_id,
-            "expires_at": link.expires_at
+            "expires_at": link.expires_at.isoformat() if link.expires_at else None
         })
         await redis_module.redis_client.client.set(self._key(short_url), data, ex=self._ttl)
 

@@ -1,7 +1,5 @@
 import httpx
 
-from domain.link.exceptions import GetGeoError
-
 
 class GeoService:
     def __init__(self):

@@ -1,4 +1,5 @@
 from domain.user.models import UserDTO, UserUpdateDTO
+
 from .abstract import AbstractUpdateUserUseCase
 
 

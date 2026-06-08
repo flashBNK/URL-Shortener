@@ -1,25 +1,24 @@
+from dependency_injector.wiring import Provide, inject
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from dependency_injector.wiring import inject, Provide
 
+from container import Container
 from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_link_unit_of_work
 from infrastructure.redis.link_cache import LinkCache
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
 from services.geo import GeoService
-
+from services.url import UrlService
+from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
+from usecases.link.delete.implementation import PostgreSQLDeleteLinkUseCase
 from usecases.link.find_by_short_url.implementation import PostgreSQLFindByShortUrlLinkUseCase
+from usecases.link.get_links_me.implementation import PostgreSQLGetMeLinksUseCase
 from usecases.link.get_list_clicks.implementation import PostgreSQLGetLinkClicksUseCase
+from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
 from usecases.link.list_public_links.implementation import PostgreSQLListPublicLinksUseCase
 from usecases.link.redirect.implementation import PostgreSQLRedirectLinkUseCase
-from usecases.link.create.implementation import PostgreSQLCreateLinkUseCase
-from usecases.link.group_by_country.implementation import PostgreSQLGroupByCountryLinkUseCase
-from usecases.link.get_links_me.implementation import PostgreSQLGetMeLinksUseCase
-from usecases.link.delete.implementation import PostgreSQLDeleteLinkUseCase
 from usecases.link.update.implementation import PostgreSQLUpdateLinkUseCase
 
-from services.url import UrlService
-from container import Container
 
 def get_link_unit_of_work(
     session: AsyncSession = Depends(get_async_session)

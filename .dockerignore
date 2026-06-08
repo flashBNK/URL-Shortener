@@ -1,0 +1,38 @@
+# Виртуальное окружение — зависимости ставятся внутри образа
+.venv
+venv
+
+# Git история — не нужна в образе
+.git
+.gitignore
+
+# IDE файлы
+.idea
+.vscode
+
+# Python кэш
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Тесты — в prod образе не нужны
+tests/
+.pytest_cache
+.coverage
+htmlcov/
+
+# Секреты — никогда не должны попадать в образ
+config/.env
+config/.env.test
+*.env
+
+# Docker файлы (не копировать сами себя)
+build/Dockerfile
+build/docker-compose.yml
+
+# Прочее
+*.md
+save_code.py
+Makefile

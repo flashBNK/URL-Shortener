@@ -1,22 +1,27 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, Response
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials
 
-from usecases.user.delete.abstract import AbstractDeleteUserUseCase
-from .models import CreateUserSchema, UserSchema, UpdateUserSchema, ChangePasswordSchema, PasswordSchema
-from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
-from domain.user.models import CreateUserDTO, UserDTO, UserUpdateDTO, ChangePasswordDTO, PasswordDTO
-from domain.user.exceptions import UserNotFound, WrongPasswordError, UserIsExist
-from .dependencies import (create_user_use_case, security_scheme, get_current_user_optional,
-                           update_user_use_case, change_password_user_use_case, delete_user_use_case)
 from api.v1.auth.dependencies import get_user_by_token_use_case
+from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
+from domain.user.exceptions import UserIsExist, UserNotFound, WrongPasswordError
+from domain.user.models import ChangePasswordDTO, CreateUserDTO, PasswordDTO, UserDTO, UserUpdateDTO
+from limiter import limiter
+from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseCase
 from usecases.user.change_password.abstract import AbstractChangePasswordUserUseCase
 from usecases.user.create.abstract import AbstractCreateUserUseCase
-from usecases.token.get_user_by_token.abstract import AbstractGetUserByTokenUseCase
+from usecases.user.delete.abstract import AbstractDeleteUserUseCase
 from usecases.user.update.abstract import AbstractUpdateUserUseCase
 
-from limiter import limiter
-from ..auth.models import LoginUserSchema
+from .dependencies import (
+    change_password_user_use_case,
+    create_user_use_case,
+    delete_user_use_case,
+    get_current_user_optional,
+    security_scheme,
+    update_user_use_case,
+)
+from .models import ChangePasswordSchema, CreateUserSchema, PasswordSchema, UpdateUserSchema, UserSchema
 
 router = APIRouter(prefix="/user")
 

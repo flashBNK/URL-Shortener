@@ -1,7 +1,8 @@
+import time
+
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-import time
 
 log = structlog.get_logger("http")
 

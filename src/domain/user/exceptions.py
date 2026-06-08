@@ -1,16 +1,16 @@
 class UserNotFound(Exception):
     def __init__(self) -> None:
-        super().__init__( f"User is not found.")
+        super().__init__( "User is not found.")
 
 
 class AccessDenied(Exception):
     def __init__(self) -> None:
-        super().__init__( f"You do not have permission to modify this object.")
+        super().__init__( "You do not have permission to modify this object.")
 
 
 class WrongPasswordError(Exception):
     def __init__(self) -> None:
-        super().__init__( f"Wrong password.")
+        super().__init__( "Wrong password.")
 
 
 class UserIsExist(Exception):

@@ -1,5 +1,6 @@
 from domain.link.models import LinkDTO, UpdateLinkDTO
 from infrastructure.redis.link_cache import LinkCache
+
 from .abstract import AbstractUpdateLinkUseCase
 
 

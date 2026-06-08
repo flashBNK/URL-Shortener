@@ -1,16 +1,16 @@
 import re
 from typing import List
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.token.models import LoginUserDTO
-from domain.user.exceptions import UserNotFound, WrongPasswordError, UserIsExist
-from domain.user.repository import AbstractUserRepository
-from domain.user.models import UserDTO, CreateUserDTO, UserUpdateDTO, ChangePasswordDTO, PasswordDTO
-from infrastructure.databases.postgresql.models.user import User as UserModel
 from domain.user.crypto import context
+from domain.user.exceptions import UserIsExist, UserNotFound, WrongPasswordError
+from domain.user.models import ChangePasswordDTO, CreateUserDTO, PasswordDTO, UserDTO, UserUpdateDTO
+from domain.user.repository import AbstractUserRepository
+from infrastructure.databases.postgresql.models.user import User as UserModel
 
 
 class PostgreSQLUserRepository(AbstractUserRepository):

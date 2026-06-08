@@ -1,6 +1,8 @@
 import time
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+
 
 class TimingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

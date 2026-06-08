@@ -1,4 +1,3 @@
-from typing import List
 
 from domain.link.models import LinkDTO
 

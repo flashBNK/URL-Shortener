@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .token import PostgreSQLTokenRepository
 from ..user.user import PostgreSQLUserRepository
+from .token import PostgreSQLTokenRepository
 
 
 class PostgreSQLTokenUnitOfWork:

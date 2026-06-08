@@ -1,5 +1,5 @@
-from typing import List
 from abc import ABC, abstractmethod
+from typing import List
 
 from domain.link.models import LinkDTO
 from domain.pagination.paginate import PaginationDTO

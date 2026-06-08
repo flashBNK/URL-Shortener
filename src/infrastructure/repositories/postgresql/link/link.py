@@ -1,14 +1,14 @@
 import re
-from typing import List, Tuple
-from datetime import datetime, UTC, timedelta
+from datetime import UTC, datetime, timedelta
+from typing import List
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from domain.link.exceptions import LinkNotFoundError, LinkIsExist, LinkIsExpires
+from domain.link.exceptions import LinkIsExist, LinkIsExpires, LinkNotFoundError
+from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
 from domain.link.repository import AbstractLinkRepository
-from domain.link.models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
 from domain.pagination.paginate import PaginationDTO
 from domain.user.exceptions import AccessDenied
 from infrastructure.databases.postgresql.models.link import Link as LinkModel
@@ -119,7 +119,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
 
     async def list_public_links(self, paginate: PaginationDTO | None) -> tuple[List[LinkDTO], int]:
-        count_stmt = select(func.count()).where(LinkModel.user_id == None)
+        count_stmt = select(func.count()).where(LinkModel.user_id.is_(None))
         total = (await self._session.execute(count_stmt)).scalar()
 
         if not total or not paginate:
@@ -127,7 +127,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
         stmt = (
             (select(LinkModel)
-             .where(LinkModel.user_id == None))
+             .where(LinkModel.user_id.is_(None)))
             .offset(paginate.offset)
             .limit(paginate.limit)
             .order_by(LinkModel.id.desc())
@@ -169,6 +169,15 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
         await self._session.flush()
 
         return self._to_domain(link)
+
+    async def increment_total(self, short_url: str) -> None:
+        stmt = (
+            update(LinkModel)
+            .where(LinkModel.short_url == short_url)
+            .values(total=LinkModel.total + 1)
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
 
 
     async def get(self, link_id: int) -> LinkDTO:

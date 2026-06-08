@@ -1,4 +1,5 @@
 from domain.user.models import UserDTO
+
 from .abstract import AbstractGetUserByTokenUseCase
 
 

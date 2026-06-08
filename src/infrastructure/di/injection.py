@@ -2,8 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from container import Container
 from infrastructure.repositories.postgresql.link.uow import PostgreSQLLinkUnitOfWork
-from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
 from infrastructure.repositories.postgresql.token.uow import PostgreSQLTokenUnitOfWork
+from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
+
 
 def build_link_unit_of_work(
     session: AsyncSession,

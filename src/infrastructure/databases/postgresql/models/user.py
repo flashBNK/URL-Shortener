@@ -1,7 +1,13 @@
-from typing import Optional
-from datetime import datetime, UTC
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .link import Link
+    from .token import Token
+
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, DateTime
 
 from ..base import Base
 

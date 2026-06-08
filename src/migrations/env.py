@@ -1,13 +1,10 @@
 import asyncio
-import infrastructure.databases.postgresql.models
-
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
 
 from infrastructure.databases.postgresql.base import Base
 from settings import settings

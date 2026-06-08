@@ -4,15 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_token_unit_of_work
 from infrastructure.repositories.postgresql.token.uow import PostgreSQLTokenUnitOfWork
-
-from usecases.token.revoke_all_tokens.implementation import PostgreSQLRevokeAllTokensUseCase
 from usecases.token.create.implementation import PostgreSQLCreateTokenUseCase
-from usecases.token.refresh.implementation import PostgreSQLRefreshTokenUseCase
 from usecases.token.get_user_by_token.implementation import PostgreSQLGetUserByTokenUseCase
 from usecases.token.logout.implementation import PostgreSQLLogoutTokenUseCase
+from usecases.token.refresh.implementation import PostgreSQLRefreshTokenUseCase
+from usecases.token.revoke_all_tokens.implementation import PostgreSQLRevokeAllTokensUseCase
 
-from services.url import UrlService
-from container import Container
 
 def get_token_unit_of_work(
     session: AsyncSession = Depends(get_async_session)

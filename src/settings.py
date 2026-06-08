@@ -1,7 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import SecretStr
-import yaml
 from pathlib import Path
+
+import yaml
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -64,7 +65,7 @@ class _Settings(BaseSettings):
         # Секреты settings подтянет из .env сам через model_config
         return cls(
             app=_AppSettings(**data.get("app", {})),
-            database=_DatabaseSettings(**data.get("database", {})),
+            database=_DatabaseSettings(),  # ← убрать kwargs, читает только из env vars
         )
 
 

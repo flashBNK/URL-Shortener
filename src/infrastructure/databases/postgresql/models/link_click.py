@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .link import Link
+
 import datetime
 
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, DateTime, ForeignKey
 
 from ..base import Base
 

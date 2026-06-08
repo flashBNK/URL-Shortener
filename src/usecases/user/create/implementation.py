@@ -1,4 +1,5 @@
-from domain.user.models import UserDTO, UserUpdateDTO, CreateUserDTO
+from domain.user.models import CreateUserDTO, UserDTO
+
 from .abstract import AbstractCreateUserUseCase
 
 

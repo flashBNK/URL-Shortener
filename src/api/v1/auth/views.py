@@ -1,21 +1,25 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials
 
-from usecases.token.revoke_all_tokens.abstract import AbstractRevokeAllTokensUseCase
-from .models import LoginUserSchema, RefreshTokenSchema, TokenSchema
 from api.v1.user.dependencies import get_current_user_optional, security_scheme
-from domain.user.models import UserDTO
 from domain.token.exceptions import TokenNotFoundError
-from domain.user.exceptions import UserNotFound, WrongPasswordError
 from domain.token.models import LoginUserDTO, RefreshTokenDTO
-from usecases.token.create.abstract import AbstractCreateTokenUseCase
-from usecases.token.refresh.abstract import AbstractRefreshTokenUseCase
-from usecases.token.logout.abstract import AbstractLogoutTokenUseCase
-from .dependencies import (create_token_use_case, refresh_token_use_case, logout_token_use_case,
-                           revoke_all_tokens_use_case)
-
+from domain.user.exceptions import UserNotFound, WrongPasswordError
+from domain.user.models import UserDTO
 from limiter import limiter
+from usecases.token.create.abstract import AbstractCreateTokenUseCase
+from usecases.token.logout.abstract import AbstractLogoutTokenUseCase
+from usecases.token.refresh.abstract import AbstractRefreshTokenUseCase
+from usecases.token.revoke_all_tokens.abstract import AbstractRevokeAllTokensUseCase
+
+from .dependencies import (
+    create_token_use_case,
+    logout_token_use_case,
+    refresh_token_use_case,
+    revoke_all_tokens_use_case,
+)
+from .models import LoginUserSchema, RefreshTokenSchema, TokenSchema
 
 router = APIRouter(prefix="/auth")
 

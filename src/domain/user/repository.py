@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
-from ..repositories.abstract import AbstractRepository
-from .models import UserDTO, UserUpdateDTO, CreateUserDTO, ChangePasswordDTO, PasswordDTO
 from domain.token.models import LoginUserDTO
+
+from ..repositories.abstract import AbstractRepository
 from .exceptions import UserNotFound
+from .models import ChangePasswordDTO, CreateUserDTO, PasswordDTO, UserDTO, UserUpdateDTO
 
 
 class AbstractUserRepository(AbstractRepository[UserDTO, int, CreateUserDTO, UserUpdateDTO], ABC):

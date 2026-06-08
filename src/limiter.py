@@ -1,8 +1,5 @@
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from settings import settings
-
 from fastapi import Request
+from slowapi import Limiter
 
 
 def get_rate_limit_key(request: Request) -> str:
@@ -38,4 +35,8 @@ def get_auth_key(request: Request) -> str | None:
     return None
 
 
-limiter = Limiter(key_func=get_rate_limit_key, storage_uri=settings.redis_url, key_prefix="ratelimit",)
+limiter = Limiter(
+    key_func=get_rate_limit_key,
+    storage_uri="memory://",
+    key_prefix="ratelimit",
+)

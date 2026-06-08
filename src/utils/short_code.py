@@ -1,5 +1,5 @@
-import string
 import secrets
+import string
 
 DEFAULT_NUM = 6
 ALPHABET = string.ascii_letters + string.digits

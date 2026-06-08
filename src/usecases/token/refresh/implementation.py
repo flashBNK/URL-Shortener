@@ -1,4 +1,5 @@
-from domain.token.models import TokenDTO, RefreshTokenDTO
+from domain.token.models import RefreshTokenDTO, TokenDTO
+
 from .abstract import AbstractRefreshTokenUseCase
 
 

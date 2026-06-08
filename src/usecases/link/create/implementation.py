@@ -1,12 +1,11 @@
+from domain.link.exceptions import InvalidUrlError, LinkAlreadyExist, LinkIsExist, UnsafeUrlError
 from domain.link.models import CreateLinkDTO, LinkDTO
-from domain.link.exceptions import LinkIsExist, LinkAlreadyExist, InvalidUrlError, UnsafeUrlError
-from utils.short_code import generate_short_code
-from services.url import UrlService
-from services.safe_browsing import SafeBrowsingService
 from logger import get_logger
+from services.safe_browsing import SafeBrowsingService
+from services.url import UrlService
+from utils.short_code import generate_short_code
 
 from .abstract import AbstractCreateLinkUseCase
-
 
 log = get_logger("usecases.link")
 

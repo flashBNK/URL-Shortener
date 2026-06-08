@@ -1,4 +1,5 @@
 from domain.user.models import PasswordDTO
+
 from .abstract import AbstractDeleteUserUseCase
 
 

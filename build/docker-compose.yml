@@ -1,37 +1,61 @@
 name: url-shortener
 
 services:
+
   db:
-    image: postgres:16-alpine # (легковесный постгрес)
+    image: postgres:16-alpine
     container_name: url_db
-#    restart: always # запсук контейнера при запуске IDE
+    restart: unless-stopped
     env_file:
       - ../config/.env
     ports:
       - "5433:5432"
-    volumes: # данные, которые должны сохраниться в независимости от состояния образа
+    volumes:
       - postgres_data:/var/lib/postgresql/data
-      - .init:/docker-entrypoint-initdb.d
-    networks: # метод связи приложения и докер контейнера
+    networks:
       - url_net
-    healthcheck: # в определённый момент будет выполнять определённую команду с определённым интервалом
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB'"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
-      timeout: 3s # время выполнения команды
-      retries: 3 # количество попыток выполнения указанной команды, в случае последовательных неудач
+      timeout: 3s
+      retries: 5
 
-#  app:
-#    build:
-#       context: ..
-#       dockerfile: build/Dockerfile
-#    container_name: study_app
-#    ports:w5
-#      - "8000:8000"
-#    networks:
-#      - study_net
-#    depends_on: # приложение запустится только после того, как db выполнит условие service_healthy
-#      db:
-#        condition: service_healthy # если healthcheck из db пройдёт, то только тогда начнётся запуск приложения app. позволяет запускаться только последвовательно
+  redis:
+    image: redis:7-alpine
+    container_name: url_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - url_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    container_name: url_app
+    restart: unless-stopped
+    env_file:
+      - ../config/.env
+    environment:
+      # Внутри Docker сервисы общаются по имени контейнера, не localhost
+      - DB_HOST=db            # перекрывает localhost из .env
+      - DB_PORT=5432          # внутри Docker стандартный порт, не 5433
+      - REDIS_URL=redis://redis:6379/0  # перекрывает localhost из .env
+    ports:
+      - "8000:8000"
+    networks:
+      - url_net
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:

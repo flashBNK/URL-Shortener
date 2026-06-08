@@ -1,4 +1,5 @@
 from infrastructure.redis.link_cache import LinkCache
+
 from .abstract import AbstractDeleteLinkUseCase
 
 

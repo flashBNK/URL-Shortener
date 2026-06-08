@@ -1,8 +1,8 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import List
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
 from domain.link.models import CreateLinkClickDTO, LinkClickDTO
 from domain.pagination.paginate import PaginationDTO

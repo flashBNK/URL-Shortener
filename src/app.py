@@ -1,18 +1,19 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from middlewares.time_middleware import TimingMiddleware
-from middlewares.log_middleware import LoggingMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from settings import settings
-from api.v1.routers import router
 from api.v1.link.views import short_router
-from infrastructure.redis.client import redis_client
+from api.v1.routers import router
 from container import Container
+from infrastructure.redis.client import redis_client
 from limiter import limiter
-from logger import setup_logging, get_logger
+from logger import get_logger, setup_logging
+from middlewares.log_middleware import LoggingMiddleware
+from middlewares.time_middleware import TimingMiddleware
+from settings import settings
 
 container = Container()
 

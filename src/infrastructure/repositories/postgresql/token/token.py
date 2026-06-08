@@ -1,18 +1,18 @@
 import secrets
-
+from datetime import UTC, datetime, timedelta
 from typing import List
-from datetime import datetime, UTC, timedelta
 
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import  select, update, delete
 
-from domain.token.exceptions import TokenNotFoundError, TokenExpiredError
+from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
+from domain.token.models import RefreshTokenDTO, TokenDTO, UpdateTokenDTO
 from domain.token.repository import AbstractTokenRepository
-from domain.token.models import LoginUserDTO, TokenDTO, RefreshTokenDTO, UpdateTokenDTO
 from domain.user.exceptions import UserNotFound
 from domain.user.models import UserDTO
 from infrastructure.databases.postgresql.models.token import Token as TokenModel
 from infrastructure.databases.postgresql.models.user import User as UserModel
+
 from .crypto import hash_token
 
 

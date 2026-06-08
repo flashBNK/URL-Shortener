@@ -1,10 +1,8 @@
 import re
-
-from pydantic import BaseModel, EmailStr, model_validator, field_validator
 from datetime import datetime
 from typing import Optional
 
-from domain.user.crypto import context
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class CreateUserSchema(BaseModel):

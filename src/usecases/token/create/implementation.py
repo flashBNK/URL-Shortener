@@ -1,4 +1,5 @@
-from domain.token.models import TokenDTO, LoginUserDTO
+from domain.token.models import LoginUserDTO, TokenDTO
+
 from .abstract import AbstractCreateTokenUseCase
 
 

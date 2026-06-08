@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .link import PostgreSQLLinkRepository
 from .click import PostgreSQLLinkClickRepository
+from .link import PostgreSQLLinkRepository
 
 
 class PostgreSQLLinkUnitOfWork:

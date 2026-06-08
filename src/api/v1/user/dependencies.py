@@ -1,19 +1,17 @@
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from api.v1.auth.dependencies import get_user_by_token_use_case
+from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
+from domain.user.models import UserDTO
 from infrastructure.databases.postgresql.session import get_async_session
 from infrastructure.di.injection import build_user_unit_of_work
 from infrastructure.repositories.postgresql.user.uow import PostgreSQLUserUnitOfWork
-from domain.user.models import UserDTO
-from domain.token.exceptions import TokenExpiredError, TokenNotFoundError
-from api.v1.auth.dependencies import get_user_by_token_use_case
-
 from usecases.user.change_password.implementation import PostgreSQLChangePasswordUserUseCase
 from usecases.user.create.implementation import PostgreSQLCreateUserUseCase
 from usecases.user.delete.implementation import PostgreSQLDeleteUserUseCase
 from usecases.user.update.implementation import PostgreSQLUpdateUserUseCase
-
 
 security_scheme = HTTPBearer(auto_error=False, scheme_name="Bearer")
 

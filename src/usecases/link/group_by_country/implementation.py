@@ -1,4 +1,5 @@
 from user_agents import parse
+
 from domain.link.models import GroupByCountryLinkDTO
 
 from .abstract import AbstractGroupByCountryLinkUseCase

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from domain.link.models import LinkDTO, UpdateLinkDTO
 
+from domain.link.models import LinkDTO, UpdateLinkDTO
 
 
 class AbstractUpdateLinkUseCase(ABC):

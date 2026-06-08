@@ -1,33 +1,55 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
-from utils.obfuscate_ip import obfuscate_ip
 from api.pydantic.paginate import Pagination
-from api.v1.link.models import LinkSchema, CreateLinkSchema, GroupByCountryLinkSchema, UpdateLinkSchema, \
-    ListLinksSchema, LinkShortSchema, ListLinkClicksSchema, LinkClickSchema
-from domain.link.exceptions import (LinkNotFoundError, LinkIsExist, InvalidUrlError,
-                                    UnsafeUrlError, LinkIsExpires, LinkAlreadyExist,
-                                    LinkIsNotActive)
-from domain.token.exceptions import TokenNotFoundError
-from domain.user.exceptions import UserNotFound, AccessDenied
+from api.v1.link.models import (
+    CreateLinkSchema,
+    GroupByCountryLinkSchema,
+    LinkClickSchema,
+    LinkSchema,
+    LinkShortSchema,
+    ListLinkClicksSchema,
+    ListLinksSchema,
+    UpdateLinkSchema,
+)
+from api.v1.user.dependencies import get_current_user_optional
+from domain.link.exceptions import (
+    InvalidUrlError,
+    LinkAlreadyExist,
+    LinkIsExist,
+    LinkIsExpires,
+    LinkIsNotActive,
+    LinkNotFoundError,
+    UnsafeUrlError,
+)
 from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
-from domain.user.models import UserDTO
 from domain.pagination.paginate import PaginationDTO
+from domain.token.exceptions import TokenNotFoundError
+from domain.user.exceptions import AccessDenied, UserNotFound
+from domain.user.models import UserDTO
+from limiter import get_anon_key, get_auth_key, limiter
+from usecases.link.create.abstract import AbstractCreateLinkUseCase
+from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
+from usecases.link.get_links_me.abstract import AbstractGetMeLinksUseCase
 from usecases.link.get_list_clicks.abstract import AbstractGetLinkClicksUseCase
+from usecases.link.group_by_country.abstract import AbstractGroupByCountryLinkUseCase
 from usecases.link.list_public_links.abstract import AbstractListPublicLinksUseCase
 from usecases.link.redirect.abstract import AbstractRedirectLinkUseCase
-from usecases.link.create.abstract import AbstractCreateLinkUseCase
-from usecases.link.group_by_country.abstract import AbstractGroupByCountryLinkUseCase
-from usecases.link.get_links_me.abstract import AbstractGetMeLinksUseCase
-from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
 from usecases.link.update.implementation import AbstractUpdateLinkUseCase
-from .dependencies import (find_by_short_url_link_use_case, create_link_use_case, redirect_link_use_case,
-                           stats_link_use_case, get_me_links_use_case, delete_link_use_case,
-                           update_link_use_case, get_link_clicks_use_case, list_public_links_use_case)
-from api.v1.user.dependencies import get_current_user_optional
+from utils.obfuscate_ip import obfuscate_ip
 
-from limiter import limiter, get_anon_key, get_auth_key
+from .dependencies import (
+    create_link_use_case,
+    delete_link_use_case,
+    find_by_short_url_link_use_case,
+    get_link_clicks_use_case,
+    get_me_links_use_case,
+    list_public_links_use_case,
+    redirect_link_use_case,
+    stats_link_use_case,
+    update_link_use_case,
+)
 
 router = APIRouter(prefix="/link")
 short_router = APIRouter()

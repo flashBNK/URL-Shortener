@@ -3,8 +3,8 @@ from typing import List
 
 from ..pagination.paginate import PaginationDTO
 from ..repositories.abstract import AbstractRepository
-from .models import LinkDTO, CreateLinkDTO, UpdateLinkDTO
 from .exceptions import LinkNotFoundError
+from .models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
 
 
 class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, UpdateLinkDTO], ABC):
@@ -37,6 +37,9 @@ class AbstractLinkRepository(AbstractRepository[LinkDTO, int, CreateLinkDTO, Upd
         raise LinkNotFoundError
 
     def find_by_short_url_and_check(self, short_url: str, user_id: int) -> LinkDTO:
+        raise LinkNotFoundError
+
+    def increment_total(self, short_url: str) -> None:
         raise LinkNotFoundError
 
     # @abstractmethod
