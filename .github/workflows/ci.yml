@@ -64,6 +64,7 @@ jobs:
           DB_PASSWORD: password
           DB_HOST: localhost
           DB_PORT: 5433
-          DB_NAME: db
+          DB_NAME: url_shortener_test
+          DATABASE_URL: postgresql+asyncpg://user:password@localhost:5433/url_shortener_test
           REDIS_URL: redis://localhost:6379/0
         run: pytest -q
