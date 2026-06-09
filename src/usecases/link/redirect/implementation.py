@@ -1,3 +1,5 @@
+from redis.exceptions import RedisError
+
 from domain.link.exceptions import LinkIsNotActive
 from domain.link.models import CreateLinkClickDTO, LinkDTO
 from infrastructure.redis.link_cache import LinkCache
@@ -16,7 +18,11 @@ class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
     async def execute(self, short_url: str, user_agent: str, ip: str) -> LinkDTO:
         country = await self._geo_service.get_country(ip=ip)
 
-        cached_link = await self._cache.get(short_url)
+        try:
+            cached_link = await self._cache.get(short_url)
+        except (RedisError, OSError) as exc:
+            log.warning("redirect cache get failed", short_url=short_url, error=str(exc))
+            cached_link = None
 
 
         if cached_link:
@@ -53,6 +59,9 @@ class PostgreSQLRedirectLinkUseCase(AbstractRedirectLinkUseCase):
                 link_id=link.id,
             ))
 
-            await self._cache.set(short_url, link)
+            try:
+                await self._cache.set(short_url, link)
+            except (RedisError, OSError) as exc:
+                log.warning("redirect cache set failed", short_url=short_url, error=str(exc))
 
         return link
