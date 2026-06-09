@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, publicBaseUrl } from "../api/client";
 import {
   type GroupByCountryLinkSchema,
@@ -8,6 +8,7 @@ import {
   type UserSchema,
 } from "../api/types";
 import Charts from "../components/Charts";
+import EditLinkModal from "../components/EditLinkModal";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
@@ -21,6 +22,7 @@ import { summarizeUserAgent } from "../utils/userAgent";
 export default function LinkDetailsPage() {
   const { language, t } = useI18n();
   const { shortUrl = "" } = useParams();
+  const navigate = useNavigate();
   const loadedRef = useRef("");
   const [link, setLink] = useState<LinkSchema | null>(null);
   const [stats, setStats] = useState<GroupByCountryLinkSchema | null>(null);
@@ -29,7 +31,9 @@ export default function LinkDetailsPage() {
   const [error, setError] = useState("");
   const [statsError, setStatsError] = useState(false);
   const [copyMessage, setCopyMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -89,6 +93,18 @@ export default function LinkDetailsPage() {
     setCopyMessage(t("details.userAgentCopied"));
   }
 
+  function handleLinkSaved(updatedLink: LinkSchema) {
+    const previousShortUrl = link?.short_url;
+    setLink(updatedLink);
+    setIsEditing(false);
+    setSuccessMessage(t("editLink.saved"));
+
+    if (previousShortUrl && updatedLink.short_url !== previousShortUrl) {
+      loadedRef.current = "";
+      navigate(`/links/${updatedLink.short_url}`, { replace: true });
+    }
+  }
+
   if (isLoading) {
     return <LoadingState label={t("details.detailsLoading")} />;
   }
@@ -110,6 +126,7 @@ export default function LinkDetailsPage() {
 
   const shortLink = `${publicBaseUrl}/${link.short_url}`;
   const ownerName = currentUser && link.user_id === currentUser.id ? currentUser.username : null;
+  const canEdit = Boolean(ownerName);
 
   return (
     <section className="stack-xl">
@@ -129,6 +146,11 @@ export default function LinkDetailsPage() {
           <a className="primary-link-button" href={shortLink} rel="noreferrer" target="_blank">
             {t("common.open")}
           </a>
+          {canEdit && (
+            <button className="secondary-button" onClick={() => setIsEditing(true)} type="button">
+              {t("common.edit")}
+            </button>
+          )}
           <Link className="ghost-button" to="/dashboard">
             {t("common.back")}
           </Link>
@@ -136,6 +158,7 @@ export default function LinkDetailsPage() {
       </div>
 
       {copyMessage && <Message type="success">{copyMessage}</Message>}
+      {successMessage && <Message type="success">{successMessage}</Message>}
 
       <StatsCards link={link} ownerName={ownerName} />
 
@@ -187,6 +210,8 @@ export default function LinkDetailsPage() {
           />
         )}
       </section>
+
+      {isEditing && <EditLinkModal link={link} onClose={() => setIsEditing(false)} onSaved={handleLinkSaved} />}
     </section>
   );
 }

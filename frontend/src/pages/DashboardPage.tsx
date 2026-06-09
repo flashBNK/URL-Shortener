@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { LinkShortSchema } from "../api/types";
+import type { LinkSchema, LinkShortSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
+import EditLinkModal from "../components/EditLinkModal";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
 import LinkForm from "../components/LinkForm";
@@ -18,8 +19,10 @@ export default function DashboardPage() {
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
   const [error, setError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [editingLink, setEditingLink] = useState<LinkShortSchema | null>(null);
 
   async function loadLinks() {
     setError("");
@@ -53,6 +56,24 @@ export default function DashboardPage() {
     setCopyMessage(t("common.copied"));
   }
 
+  function handleLinkSaved(updatedLink: LinkSchema) {
+    setLinks((current) =>
+      current.map((link) =>
+        link.short_url === editingLink?.short_url
+          ? {
+              url: updatedLink.url,
+              short_url: updatedLink.short_url,
+              total: updatedLink.total,
+              is_active: updatedLink.is_active,
+              expires_at: updatedLink.expires_at,
+            }
+          : link,
+      ),
+    );
+    setEditingLink(null);
+    setSuccessMessage(t("editLink.saved"));
+  }
+
   return (
     <section className="stack-xl">
       <div className="dashboard-hero">
@@ -74,6 +95,7 @@ export default function DashboardPage() {
       )}
 
       {copyMessage && <Message type="success">{copyMessage}</Message>}
+      {successMessage && <Message type="success">{successMessage}</Message>}
       {error && <Message type="error">{error}</Message>}
 
       {isLoading ? (
@@ -81,7 +103,7 @@ export default function DashboardPage() {
       ) : links.length ? (
         <div className="cards-grid">
           {links.map((link) => (
-            <LinkCard key={link.short_url} link={link} onCopy={copyLink} />
+            <LinkCard key={link.short_url} link={link} onCopy={copyLink} onEdit={setEditingLink} />
           ))}
         </div>
       ) : (
@@ -101,6 +123,10 @@ export default function DashboardPage() {
         <span>{t("dashboard.helperDescription")}</span>
         <Link to="/public">{t("header.publicLinks")}</Link>
       </div>
+
+      {editingLink && (
+        <EditLinkModal link={editingLink} onClose={() => setEditingLink(null)} onSaved={handleLinkSaved} />
+      )}
     </section>
   );
 }

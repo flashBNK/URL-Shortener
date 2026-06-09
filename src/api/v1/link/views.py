@@ -185,7 +185,8 @@ async def update_link(
     dto = UpdateLinkDTO(
         short_url=payload.short_url,
         is_active=payload.is_active,
-        expires_at=payload.expires_at
+        expires_at=payload.expires_at,
+        expires_at_set="expires_at" in payload.model_fields_set,
     )
 
     try:

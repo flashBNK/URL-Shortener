@@ -26,6 +26,7 @@ class UpdateLinkDTO:
     short_url: Optional[str]
     is_active: Optional[bool]
     expires_at: Optional[datetime]
+    expires_at_set: bool = False
 
 
 @dataclass(slots=True)
