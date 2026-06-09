@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { LinkSchema, LinkShortSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
+import DeleteLinkModal from "../components/DeleteLinkModal";
 import EditLinkModal from "../components/EditLinkModal";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
@@ -15,6 +16,8 @@ import { getApiErrorMessage } from "../utils/apiErrors";
 export default function DashboardPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { message?: string } | null;
   const loadedRef = useRef(false);
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
   const [error, setError] = useState("");
@@ -22,6 +25,7 @@ export default function DashboardPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [deletingLink, setDeletingLink] = useState<LinkShortSchema | null>(null);
   const [editingLink, setEditingLink] = useState<LinkShortSchema | null>(null);
 
   async function loadLinks() {
@@ -39,6 +43,11 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (state?.message) {
+      setSuccessMessage(state.message);
+      navigate(location.pathname, { replace: true });
+    }
+
     if (!isAuthenticated()) {
       navigate("/login");
       return;
@@ -49,7 +58,7 @@ export default function DashboardPage() {
     }
     loadedRef.current = true;
     void loadLinks();
-  }, [navigate]);
+  }, [location.pathname, navigate, state?.message]);
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
@@ -72,6 +81,12 @@ export default function DashboardPage() {
     );
     setEditingLink(null);
     setSuccessMessage(t("editLink.saved"));
+  }
+
+  function handleLinkDeleted(shortUrl: string) {
+    setLinks((current) => current.filter((link) => link.short_url !== shortUrl));
+    setDeletingLink(null);
+    setSuccessMessage(t("deleteLink.deleted"));
   }
 
   return (
@@ -103,7 +118,13 @@ export default function DashboardPage() {
       ) : links.length ? (
         <div className="cards-grid">
           {links.map((link) => (
-            <LinkCard key={link.short_url} link={link} onCopy={copyLink} onEdit={setEditingLink} />
+            <LinkCard
+              key={link.short_url}
+              link={link}
+              onCopy={copyLink}
+              onDelete={setDeletingLink}
+              onEdit={setEditingLink}
+            />
           ))}
         </div>
       ) : (
@@ -126,6 +147,9 @@ export default function DashboardPage() {
 
       {editingLink && (
         <EditLinkModal link={editingLink} onClose={() => setEditingLink(null)} onSaved={handleLinkSaved} />
+      )}
+      {deletingLink && (
+        <DeleteLinkModal link={deletingLink} onClose={() => setDeletingLink(null)} onDeleted={handleLinkDeleted} />
       )}
     </section>
   );

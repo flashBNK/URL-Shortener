@@ -116,7 +116,8 @@ input {
 button,
 .primary-link-button,
 .secondary-button,
-.ghost-button {
+.ghost-button,
+.danger-button {
   align-items: center;
   border-radius: 10px;
   display: inline-flex;
@@ -353,6 +354,22 @@ h3 {
   border: 1px solid transparent;
   box-shadow: none;
   color: var(--text);
+}
+
+.danger-button {
+  background: var(--danger-bg);
+  border: 1px solid color-mix(in srgb, var(--danger-text) 24%, var(--border));
+  box-shadow: none;
+  color: var(--danger-text);
+  cursor: pointer;
+}
+
+.danger-button:hover {
+  background: color-mix(in srgb, var(--danger-bg) 76%, var(--danger-text));
+}
+
+.danger-button.subtle {
+  min-height: 40px;
 }
 
 .page-shell {
@@ -1094,6 +1111,56 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.delete-modal {
+  max-width: 560px;
+}
+
+.delete-summary {
+  background: var(--toggle-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.delete-summary strong {
+  color: var(--text-strong);
+}
+
+.delete-summary span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.delete-warning {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.danger-zone {
+  align-items: center;
+  background: color-mix(in srgb, var(--danger-bg) 54%, var(--card-solid));
+  border: 1px solid color-mix(in srgb, var(--danger-text) 24%, var(--border));
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.danger-zone h2 {
+  margin-bottom: 8px;
+}
+
+.danger-zone p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 0;
+}
+
 .unlimited-panel {
   align-items: center;
   background: var(--toggle-bg);
@@ -1170,7 +1237,8 @@ h3 {
 
   .cta-band,
   .dashboard-hero,
-  .details-hero {
+  .details-hero,
+  .danger-zone {
     align-items: stretch;
     flex-direction: column;
   }

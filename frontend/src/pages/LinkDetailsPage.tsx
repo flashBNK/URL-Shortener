@@ -8,6 +8,7 @@ import {
   type UserSchema,
 } from "../api/types";
 import Charts from "../components/Charts";
+import DeleteLinkModal from "../components/DeleteLinkModal";
 import EditLinkModal from "../components/EditLinkModal";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
@@ -33,6 +34,7 @@ export default function LinkDetailsPage() {
   const [copyMessage, setCopyMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -105,6 +107,10 @@ export default function LinkDetailsPage() {
     }
   }
 
+  function handleLinkDeleted() {
+    navigate("/dashboard", { state: { message: t("deleteLink.deleted") } });
+  }
+
   if (isLoading) {
     return <LoadingState label={t("details.detailsLoading")} />;
   }
@@ -166,6 +172,19 @@ export default function LinkDetailsPage() {
 
       <Charts stats={stats} />
 
+      {canEdit && (
+        <section className="danger-zone">
+          <div>
+            <p className="eyebrow">{t("deleteLink.dangerZone")}</p>
+            <h2>{t("deleteLink.title")}</h2>
+            <p>{t("deleteLink.description")}</p>
+          </div>
+          <button className="danger-button" onClick={() => setIsDeleting(true)} type="button">
+            {t("common.delete")}
+          </button>
+        </section>
+      )}
+
       <section className="panel-section">
         <div className="section-heading">
           <div>
@@ -212,6 +231,9 @@ export default function LinkDetailsPage() {
       </section>
 
       {isEditing && <EditLinkModal link={link} onClose={() => setIsEditing(false)} onSaved={handleLinkSaved} />}
+      {isDeleting && (
+        <DeleteLinkModal link={link} onClose={() => setIsDeleting(false)} onDeleted={handleLinkDeleted} />
+      )}
     </section>
   );
 }

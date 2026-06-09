@@ -157,6 +157,15 @@ export const api = {
       { auth: true },
     );
   },
+  deleteLink(shortUrl: string) {
+    return request<void>(
+      `/link/${encodeURIComponent(shortUrl)}`,
+      {
+        method: "DELETE",
+      },
+      { auth: true },
+    );
+  },
   getClicks(shortUrl: string, limit = 10, offset = 0) {
     return request<ListLinkClicksSchema>(
       `/link/${encodeURIComponent(shortUrl)}/clicks`,

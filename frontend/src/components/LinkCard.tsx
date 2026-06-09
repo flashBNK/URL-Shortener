@@ -7,11 +7,12 @@ import { formatDate } from "../utils/formatters";
 type LinkCardProps = {
   link: LinkShortSchema;
   onCopy: (value: string) => void;
+  onDelete?: (link: LinkShortSchema) => void;
   onEdit?: (link: LinkShortSchema) => void;
   showAnalytics?: boolean;
 };
 
-export default function LinkCard({ link, onCopy, onEdit, showAnalytics = true }: LinkCardProps) {
+export default function LinkCard({ link, onCopy, onDelete, onEdit, showAnalytics = true }: LinkCardProps) {
   const { language, t } = useI18n();
   const shortLink = `${publicBaseUrl}/${link.short_url}`;
   const expiresAt = link.expires_at ? formatDate(link.expires_at, language) : "";
@@ -47,6 +48,11 @@ export default function LinkCard({ link, onCopy, onEdit, showAnalytics = true }:
         {onEdit && (
           <button className="secondary-button" onClick={() => onEdit(link)} type="button">
             {t("common.edit")}
+          </button>
+        )}
+        {onDelete && (
+          <button className="danger-button subtle" onClick={() => onDelete(link)} type="button">
+            {t("common.delete")}
           </button>
         )}
         {showAnalytics && (
