@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import { ApiError } from "../api/types";
 import { saveTokens } from "../auth/tokenStore";
 import Message from "../components/Message";
+import { useI18n } from "../i18n/I18nProvider";
+import { getApiErrorMessage } from "../utils/apiErrors";
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { message?: string } | null;
@@ -24,7 +26,7 @@ export default function LoginPage() {
       saveTokens(tokens);
       navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось войти.");
+      setError(getApiErrorMessage(err, "errors.login", t));
     } finally {
       setIsSubmitting(false);
     }
@@ -33,26 +35,26 @@ export default function LoginPage() {
   return (
     <section className="auth-page">
       <div className="auth-copy">
-        <p className="eyebrow">С возвращением</p>
-        <h1>Войдите в аккаунт</h1>
-        <p>После входа вы сможете создавать приватные ссылки, хранить каталог и смотреть аналитику.</p>
+        <p className="eyebrow">{t("auth.loginEyebrow")}</p>
+        <h1>{t("auth.loginTitle")}</h1>
+        <p>{t("auth.loginDescription")}</p>
       </div>
       <form className="auth-card" onSubmit={handleSubmit}>
         {state?.message && <Message type="success">{state.message}</Message>}
         <label>
-          Username
+          {t("common.username")}
           <input onChange={(event) => setUsername(event.target.value)} required value={username} />
         </label>
         <label>
-          Password
+          {t("common.password")}
           <input onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
         </label>
         <button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Вхожу..." : "Войти"}
+          {isSubmitting ? t("auth.loginSubmitting") : t("auth.loginSubmit")}
         </button>
         {error && <Message type="error">{error}</Message>}
         <p className="muted">
-          Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>.
+          {t("auth.noAccount")} <Link to="/register">{t("auth.signUpLink")}</Link>.
         </p>
       </form>
     </section>

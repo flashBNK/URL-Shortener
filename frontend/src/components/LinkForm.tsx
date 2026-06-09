@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, publicBaseUrl } from "../api/client";
-import { ApiError, type LinkSchema } from "../api/types";
+import type { LinkSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
+import { useI18n } from "../i18n/I18nProvider";
+import { getApiErrorMessage } from "../utils/apiErrors";
 import LinkResultCard from "./LinkResultCard";
 import Message from "./Message";
 
@@ -12,6 +14,7 @@ type LinkFormProps = {
 };
 
 export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProps) {
+  const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [customAlias, setCustomAlias] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("private");
@@ -26,15 +29,22 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    const trimmedUrl = url.trim();
     setError("");
     setCreatedLink(null);
     setCopyMessage("");
+
+    if (!trimmedUrl || trimmedUrl.includes(" ")) {
+      setError(t("errors.createLink"));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const link = await api.createLink(
         {
-          url,
+          url: trimmedUrl,
           custom_alias: customAlias.trim() ? customAlias.trim() : null,
         },
         shouldUseAuth,
@@ -44,7 +54,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
       setCreatedLink(link);
       onCreated?.(link);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось создать ссылку.");
+      setError(getApiErrorMessage(err, "errors.createLink", t));
     } finally {
       setIsSubmitting(false);
     }
@@ -52,7 +62,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
-    setCopyMessage("Ссылка скопирована.");
+    setCopyMessage(t("common.copied"));
   }
 
   return (
@@ -65,52 +75,54 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
               onClick={() => setVisibility("public")}
               type="button"
             >
-              Публичная ссылка
+              {t("linkForm.publicLink")}
             </button>
             <button
               className={visibility === "private" ? "active" : ""}
               onClick={() => setVisibility("private")}
               type="button"
             >
-              Приватная ссылка
+              {t("linkForm.privateLink")}
             </button>
           </div>
         )}
 
         {showVisibilitySwitch && (
           <p className="helper-text">
-            {visibility === "public"
-              ? "Публичная ссылка создаётся без привязки к аккаунту и отображается в общей ленте."
-              : "Приватная ссылка хранится в вашем каталоге и открывает аналитику владельцу."}
+            {visibility === "public" ? t("linkForm.publicDescription") : t("linkForm.privateDescription")}
           </p>
         )}
 
         <div className="url-input-row">
-          <input
-            aria-label="Длинная ссылка"
-            onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://example.com/very/long/link"
-            required
-            type="url"
-            value={url}
-          />
+          <label className="url-field">
+            <span>{t("linkForm.longUrlLabel")}</span>
+            <input
+              aria-label={t("linkForm.longUrlLabel")}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder={t("linkForm.urlPlaceholder")}
+              required
+              type="text"
+              value={url}
+            />
+            <small>{t("linkForm.helperNoScheme")}</small>
+          </label>
           <button disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Сокращаю..." : "Сократить"}
+            {isSubmitting ? t("linkForm.shortening") : t("linkForm.shorten")}
           </button>
         </div>
 
         <div className="alias-row">
           <label>
-            Короткий alias
+            {t("linkForm.aliasLabel")}
             <input
               maxLength={12}
               minLength={4}
               onChange={(event) => setCustomAlias(event.target.value)}
-              placeholder="например sale2026"
+              placeholder={t("linkForm.aliasPlaceholder")}
               value={customAlias}
             />
           </label>
-          <span>4-12 символов, необязательно</span>
+          <span>{t("linkForm.aliasHelp")}</span>
         </div>
 
         {error && <Message type="error">{error}</Message>}
@@ -121,9 +133,9 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
           <LinkResultCard link={createdLink} onCopy={copyLink} showDetails={Boolean(createdLink.user_id)} />
           {!createdLink.user_id && (
             <div className="soft-cta">
-              <strong>Хотите хранить ссылки и смотреть аналитику?</strong>
-              <span>Зарегистрируйтесь, чтобы сохранять приватные ссылки в личном каталоге.</span>
-              <Link to="/register">Создать аккаунт</Link>
+              <strong>{t("linkForm.anonymousCtaTitle")}</strong>
+              <span>{t("linkForm.anonymousCtaDescription")}</span>
+              <Link to="/register">{t("linkForm.createAccount")}</Link>
             </div>
           )}
         </>
@@ -132,7 +144,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
       {copyMessage && <Message type="success">{copyMessage}</Message>}
       {createdLink && !createdLink.user_id && (
         <p className="public-note">
-          Редирект идет через backend:{" "}
+          {t("linkForm.redirectNote")}{" "}
           <a href={`${publicBaseUrl}/${createdLink.short_url}`} rel="noreferrer" target="_blank">
             {publicBaseUrl}/{createdLink.short_url}
           </a>

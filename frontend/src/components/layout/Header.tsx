@@ -3,10 +3,14 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import type { UserSchema } from "../../api/types";
 import { clearTokens, isAuthenticated } from "../../auth/tokenStore";
+import { useI18n } from "../../i18n/I18nProvider";
+import { useTheme } from "../../theme/ThemeProvider";
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage, t } = useI18n();
+  const { theme, toggleTheme } = useTheme();
   const requestedRef = useRef(false);
   const [user, setUser] = useState<UserSchema | null>(null);
 
@@ -34,7 +38,7 @@ export default function Header() {
     try {
       await api.logout();
     } catch {
-      // Локальный logout важнее, даже если токен уже недействителен на backend.
+      // Local logout matters even when the backend token is already invalid.
     } finally {
       clearTokens();
       requestedRef.current = false;
@@ -53,26 +57,43 @@ export default function Header() {
       </NavLink>
 
       <nav className="main-nav">
-        <NavLink to="/">Главная</NavLink>
-        <NavLink to="/public">Публичные ссылки</NavLink>
-        <NavLink to="/dashboard">Мои ссылки</NavLink>
+        <NavLink to="/">{t("header.home")}</NavLink>
+        <NavLink to="/public">{t("header.publicLinks")}</NavLink>
+        <NavLink to="/dashboard">{t("header.dashboard")}</NavLink>
       </nav>
 
       <div className="header-actions">
+        <button
+          aria-label={t("header.theme")}
+          className="icon-toggle"
+          onClick={toggleTheme}
+          title={theme === "light" ? t("header.themeDark") : t("header.themeLight")}
+          type="button"
+        >
+          <span className="theme-toggle-orbit">{theme === "light" ? "☾" : "☀"}</span>
+        </button>
+        <div className="language-switch" aria-label={t("header.language")}>
+          <button className={language === "ru" ? "active" : ""} onClick={() => setLanguage("ru")} type="button">
+            RU
+          </button>
+          <button className={language === "en" ? "active" : ""} onClick={() => setLanguage("en")} type="button">
+            EN
+          </button>
+        </div>
         {authenticated ? (
           <>
-            <span className="user-chip">{user?.username ?? "Аккаунт"}</span>
+            <span className="user-chip">{user?.username ?? t("header.account")}</span>
             <button className="secondary-button compact" onClick={handleLogout} type="button">
-              Выйти
+              {t("header.logout")}
             </button>
           </>
         ) : (
           <>
             <NavLink className="ghost-button compact" to="/login">
-              Войти
+              {t("header.login")}
             </NavLink>
             <NavLink className="primary-link-button compact" to="/register">
-              Регистрация
+              {t("header.register")}
             </NavLink>
           </>
         )}

@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import { ApiError, type LinkShortSchema } from "../api/types";
+import type { LinkShortSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
 import LinkForm from "../components/LinkForm";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import { useI18n } from "../i18n/I18nProvider";
+import { getApiErrorMessage } from "../utils/apiErrors";
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const loadedRef = useRef(false);
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
@@ -26,7 +29,7 @@ export default function DashboardPage() {
       const response = await api.getMyLinks(30, 0);
       setLinks(response.items);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось загрузить ссылки.");
+      setError(getApiErrorMessage(err, "errors.loadLinks", t));
     } finally {
       setIsLoading(false);
     }
@@ -47,25 +50,25 @@ export default function DashboardPage() {
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
-    setCopyMessage("Ссылка скопирована.");
+    setCopyMessage(t("common.copied"));
   }
 
   return (
     <section className="stack-xl">
       <div className="dashboard-hero">
         <div>
-          <p className="eyebrow">Личный кабинет</p>
-          <h1>Каталог моих ссылок</h1>
-          <p>Управляйте приватными ссылками, открывайте аналитику и быстро создавайте новые short URL.</p>
+          <p className="eyebrow">{t("dashboard.heroEyebrow")}</p>
+          <h1>{t("dashboard.heroTitle")}</h1>
+          <p>{t("dashboard.heroDescription")}</p>
         </div>
         <button onClick={() => setShowQuickCreate((value) => !value)} type="button">
-          {showQuickCreate ? "Скрыть форму" : "Новая ссылка"}
+          {showQuickCreate ? t("common.hideForm") : t("dashboard.newLink")}
         </button>
       </div>
 
       {showQuickCreate && (
         <section className="panel-section">
-          <h2>Быстрое создание приватной ссылки</h2>
+          <h2>{t("dashboard.quickCreate")}</h2>
           <LinkForm mode="private" onCreated={() => void loadLinks()} />
         </section>
       )}
@@ -74,7 +77,7 @@ export default function DashboardPage() {
       {error && <Message type="error">{error}</Message>}
 
       {isLoading ? (
-        <LoadingState label="Загружаю каталог..." />
+        <LoadingState label={t("dashboard.loading")} />
       ) : links.length ? (
         <div className="cards-grid">
           {links.map((link) => (
@@ -85,18 +88,18 @@ export default function DashboardPage() {
         <EmptyState
           action={
             <button onClick={() => setShowQuickCreate(true)} type="button">
-              Создать первую ссылку
+              {t("dashboard.createFirst")}
             </button>
           }
-          description="Создайте приватную ссылку, и она появится в этом каталоге."
-          title="В каталоге пока пусто"
+          description={t("dashboard.emptyDescription")}
+          title={t("dashboard.emptyTitle")}
         />
       )}
 
       <div className="helper-panel">
-        <strong>Нужна публичная ссылка?</strong>
-        <span>Создайте ее на главной без привязки к аккаунту или откройте общую ленту.</span>
-        <Link to="/public">Публичные ссылки</Link>
+        <strong>{t("dashboard.helperTitle")}</strong>
+        <span>{t("dashboard.helperDescription")}</span>
+        <Link to="/public">{t("header.publicLinks")}</Link>
       </div>
     </section>
   );

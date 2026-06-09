@@ -1,27 +1,33 @@
 import type { LinkSchema } from "../api/types";
+import { useI18n } from "../i18n/I18nProvider";
+import { formatDate } from "../utils/formatters";
 
 type StatsCardsProps = {
   link: LinkSchema;
+  ownerName?: string | null;
 };
 
-export default function StatsCards({ link }: StatsCardsProps) {
+export default function StatsCards({ link, ownerName }: StatsCardsProps) {
+  const { language, t } = useI18n();
+  const owner = link.user_id ? (ownerName ?? t("common.notSpecified")) : t("stats.ownerPublic");
+
   return (
     <div className="stats-grid">
       <article className="stat-card">
-        <span>Переходы</span>
+        <span>{t("common.clicks")}</span>
         <strong>{link.total}</strong>
       </article>
       <article className="stat-card">
-        <span>Статус</span>
-        <strong>{link.is_active ? "Активна" : "Отключена"}</strong>
+        <span>{t("common.status")}</span>
+        <strong>{link.is_active ? t("common.active") : t("common.inactive")}</strong>
       </article>
       <article className="stat-card">
-        <span>Владелец</span>
-        <strong>{link.user_id ? `ID ${link.user_id}` : "Публичная"}</strong>
+        <span>{t("stats.owner")}</span>
+        <strong>{owner}</strong>
       </article>
       <article className="stat-card">
-        <span>Срок действия</span>
-        <strong>{link.expires_at ? new Date(link.expires_at).toLocaleDateString() : "Без срока"}</strong>
+        <span>{t("stats.expiresAt")}</span>
+        <strong>{link.expires_at ? formatDate(link.expires_at, language) : t("stats.noExpiry")}</strong>
       </article>
     </div>
   );

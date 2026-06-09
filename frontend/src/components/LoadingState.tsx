@@ -1,12 +1,16 @@
+import { useI18n } from "../i18n/I18nProvider";
+
 type LoadingStateProps = {
   label?: string;
 };
 
-export default function LoadingState({ label = "Загрузка..." }: LoadingStateProps) {
+export default function LoadingState({ label }: LoadingStateProps) {
+  const { t } = useI18n();
+
   return (
     <div className="loading-state">
       <span className="spinner" />
-      <span>{label}</span>
+      <span>{label ?? t("common.loading")}</span>
     </div>
   );
 }

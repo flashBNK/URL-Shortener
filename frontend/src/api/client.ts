@@ -74,11 +74,11 @@ async function request<T>(path: string, init: RequestInit = {}, options: Request
 
     if (response.status === 401) {
       clearTokens();
-      throw new ApiError(response.status, "Сессия истекла. Войдите заново.", "unauthorized");
+      throw new ApiError(response.status, "unauthorized", "unauthorized");
     }
 
     if (response.status === 429) {
-      throw new ApiError(response.status, "Слишком много запросов. Попробуйте позже.", "rate_limit");
+      throw new ApiError(response.status, "rate_limit", "rate_limit");
     }
 
     throw new ApiError(response.status, message);
@@ -135,7 +135,7 @@ export const api = {
         const message = await readErrorMessage(response);
 
         if (response.status === 429) {
-          throw new ApiError(response.status, "Слишком много запросов. Попробуйте позже.", "rate_limit");
+          throw new ApiError(response.status, "rate_limit", "rate_limit");
         }
 
         throw new ApiError(response.status, message);

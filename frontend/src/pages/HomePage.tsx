@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import HeroSection from "../components/HeroSection";
+import { useI18n } from "../i18n/I18nProvider";
 
 export default function HomePage() {
+  const { t } = useI18n();
+
   return (
     <div className="stack-xl">
       <HeroSection />
@@ -9,29 +12,29 @@ export default function HomePage() {
       <section className="feature-grid">
         <article className="feature-card">
           <span>01</span>
-          <h3>Мгновенное сокращение</h3>
-          <p>Создавайте короткие ссылки без лишних шагов и открывайте их через backend redirect.</p>
+          <h3>{t("home.featureShortenTitle")}</h3>
+          <p>{t("home.featureShortenDescription")}</p>
         </article>
         <article className="feature-card">
           <span>02</span>
-          <h3>Личный каталог</h3>
-          <p>Приватные ссылки сохраняются в аккаунте и остаются под вашим управлением.</p>
+          <h3>{t("home.featureCatalogTitle")}</h3>
+          <p>{t("home.featureCatalogDescription")}</p>
         </article>
         <article className="feature-card">
           <span>03</span>
-          <h3>Базовая аналитика</h3>
-          <p>Отслеживайте переходы, страны, устройства и последние клики на странице ссылки.</p>
+          <h3>{t("home.featureAnalyticsTitle")}</h3>
+          <p>{t("home.featureAnalyticsDescription")}</p>
         </article>
       </section>
 
       <section className="cta-band">
         <div>
-          <p className="eyebrow">Общая лента</p>
-          <h2>Посмотрите публичные ссылки</h2>
-          <p>Публичные ссылки создаются без привязки к аккаунту и доступны в общей ленте.</p>
+          <p className="eyebrow">{t("home.ctaEyebrow")}</p>
+          <h2>{t("home.ctaTitle")}</h2>
+          <p>{t("home.ctaDescription")}</p>
         </div>
         <Link className="primary-link-button" to="/public">
-          Открыть ленту
+          {t("home.openFeed")}
         </Link>
       </section>
     </div>

@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import type { GroupByCountryLinkSchema } from "../api/types";
+import { useI18n } from "../i18n/I18nProvider";
 import EmptyState from "./EmptyState";
 
 type ChartsProps = {
@@ -29,50 +30,52 @@ function mapRecord(record: Record<string, number>, emptyLabel: string) {
 }
 
 export default function Charts({ stats }: ChartsProps) {
+  const { t } = useI18n();
+
   if (!stats) {
     return (
       <EmptyState
-        description="Статистика доступна только владельцу ссылки или появится после первых переходов."
-        title="Нет данных для графиков"
+        description={t("charts.emptyChartsDescription")}
+        title={t("charts.emptyChartsTitle")}
       />
     );
   }
 
-  const byDate = mapRecord(stats.clicks_by_date, "Дата неизвестна");
-  const byCountry = mapRecord(stats.by_country, "Страна неизвестна");
-  const byDevice = mapRecord(stats.clicks_by_device, "Устройство неизвестно");
+  const byDate = mapRecord(stats.clicks_by_date, t("charts.dateUnknown"));
+  const byCountry = mapRecord(stats.by_country, t("charts.countryUnknown"));
+  const byDevice = mapRecord(stats.clicks_by_device, t("charts.deviceUnknown"));
   const hasAnyData = byDate.length > 0 || byCountry.length > 0 || byDevice.length > 0;
 
   if (!hasAnyData) {
-    return <EmptyState description="После первых переходов здесь появятся графики." title="Пока нет кликов" />;
+    return <EmptyState description={t("charts.emptyClicksDescription")} title={t("charts.emptyClicksTitle")} />;
   }
 
   return (
     <div className="charts-grid">
       <article className="chart-card chart-card-wide">
         <div className="chart-title">
-          <h3>Клики по дням</h3>
-          <span>{byDate.length ? "LineChart" : "нет данных"}</span>
+          <h3>{t("charts.clicksByDay")}</h3>
+          <span>{byDate.length ? t("common.clicks") : t("common.noData")}</span>
         </div>
         {byDate.length ? (
           <ResponsiveContainer height={260} width="100%">
             <LineChart data={byDate}>
-              <CartesianGrid stroke="#e7edf5" strokeDasharray="4 4" />
-              <XAxis dataKey="name" tick={{ fill: "#66758c", fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fill: "#66758c", fontSize: 12 }} />
+              <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
+              <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
               <Tooltip />
-              <Line dataKey="value" name="Клики" stroke="#1d5fd0" strokeWidth={3} type="monotone" />
+              <Line dataKey="value" name={t("common.clicks")} stroke="var(--accent)" strokeWidth={3} type="monotone" />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <EmptyState description="Данных по датам пока нет." title="Нет данных" />
+          <EmptyState description={t("charts.emptyDatesDescription")} title={t("common.noData")} />
         )}
       </article>
 
       <article className="chart-card">
         <div className="chart-title">
-          <h3>Страны</h3>
-          <span>PieChart</span>
+          <h3>{t("charts.countries")}</h3>
+          <span>{byCountry.length ? t("common.total") : t("common.noData")}</span>
         </div>
         {byCountry.length ? (
           <ResponsiveContainer height={250} width="100%">
@@ -86,27 +89,27 @@ export default function Charts({ stats }: ChartsProps) {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <EmptyState description="Страны появятся после кликов." title="Нет стран" />
+          <EmptyState description={t("charts.emptyCountriesDescription")} title={t("charts.emptyCountriesTitle")} />
         )}
       </article>
 
       <article className="chart-card">
         <div className="chart-title">
-          <h3>Устройства</h3>
-          <span>BarChart</span>
+          <h3>{t("charts.devices")}</h3>
+          <span>{byDevice.length ? t("common.total") : t("common.noData")}</span>
         </div>
         {byDevice.length ? (
           <ResponsiveContainer height={250} width="100%">
             <BarChart data={byDevice}>
-              <CartesianGrid stroke="#e7edf5" strokeDasharray="4 4" />
-              <XAxis dataKey="name" tick={{ fill: "#66758c", fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fill: "#66758c", fontSize: 12 }} />
+              <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
+              <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="value" fill="#17a37b" name="Клики" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="var(--accent-2)" name={t("common.clicks")} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <EmptyState description="Данные по устройствам пока отсутствуют." title="Нет устройств" />
+          <EmptyState description={t("charts.emptyDevicesDescription")} title={t("common.noData")} />
         )}
       </article>
     </div>

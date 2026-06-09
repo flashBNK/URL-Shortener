@@ -1,10 +1,12 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import { ApiError } from "../api/types";
 import Message from "../components/Message";
+import { useI18n } from "../i18n/I18nProvider";
+import { getApiErrorMessage } from "../utils/apiErrors";
 
 export default function RegisterPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -19,9 +21,9 @@ export default function RegisterPage() {
 
     try {
       await api.register({ username, email, password });
-      navigate("/login", { state: { message: "Аккаунт создан. Теперь войдите." } });
+      navigate("/login", { state: { message: t("auth.registerSuccess") } });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось зарегистрироваться.");
+      setError(getApiErrorMessage(err, "errors.register", t));
     } finally {
       setIsSubmitting(false);
     }
@@ -30,21 +32,21 @@ export default function RegisterPage() {
   return (
     <section className="auth-page">
       <div className="auth-copy">
-        <p className="eyebrow">Новый аккаунт</p>
-        <h1>Создайте личный каталог ссылок</h1>
-        <p>Регистрация нужна для приватных ссылок, сохранения истории и доступа к аналитике владельца.</p>
+        <p className="eyebrow">{t("auth.registerEyebrow")}</p>
+        <h1>{t("auth.registerTitle")}</h1>
+        <p>{t("auth.registerDescription")}</p>
       </div>
       <form className="auth-card" onSubmit={handleSubmit}>
         <label>
-          Username
+          {t("common.username")}
           <input onChange={(event) => setUsername(event.target.value)} required value={username} />
         </label>
         <label>
-          Email
+          {t("common.email")}
           <input onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
         </label>
         <label>
-          Password
+          {t("common.password")}
           <input
             minLength={8}
             onChange={(event) => setPassword(event.target.value)}
@@ -54,11 +56,11 @@ export default function RegisterPage() {
           />
         </label>
         <button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Создаю..." : "Создать аккаунт"}
+          {isSubmitting ? t("auth.registerSubmitting") : t("auth.registerSubmit")}
         </button>
         {error && <Message type="error">{error}</Message>}
         <p className="muted">
-          Уже есть аккаунт? <Link to="/login">Войдите</Link>.
+          {t("auth.withAccount")} <Link to="/login">{t("auth.signInLink")}</Link>.
         </p>
       </form>
     </section>

@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import { ApiError, type LinkShortSchema } from "../api/types";
+import type { LinkShortSchema } from "../api/types";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import { useI18n } from "../i18n/I18nProvider";
+import { getApiErrorMessage } from "../utils/apiErrors";
 
 const PAGE_LIMIT = 10;
 
 export default function PublicLinksPage() {
+  const { t } = useI18n();
   const loadedRef = useRef(false);
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
   const [total, setTotal] = useState(0);
@@ -28,7 +31,7 @@ export default function PublicLinksPage() {
       setTotal(response.total);
       setOffset(response.offset + response.items.length);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось загрузить публичные ссылки.");
+      setError(getApiErrorMessage(err, "errors.loadPublicLinks", t));
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -45,7 +48,7 @@ export default function PublicLinksPage() {
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
-    setCopyMessage("Ссылка скопирована.");
+    setCopyMessage(t("common.copied"));
   }
 
   const canLoadMore = links.length < total;
@@ -54,12 +57,12 @@ export default function PublicLinksPage() {
     <section className="stack-xl">
       <div className="dashboard-hero public-hero">
         <div>
-          <p className="eyebrow">Общая лента</p>
-          <h1>Публичные ссылки</h1>
-          <p>Здесь отображаются ссылки, созданные без авторизации и без привязки к аккаунту.</p>
+          <p className="eyebrow">{t("publicLinks.heroEyebrow")}</p>
+          <h1>{t("publicLinks.heroTitle")}</h1>
+          <p>{t("publicLinks.heroDescription")}</p>
         </div>
         <div className="hero-stat">
-          <span>Всего</span>
+          <span>{t("common.total")}</span>
           <strong>{total}</strong>
         </div>
       </div>
@@ -68,7 +71,7 @@ export default function PublicLinksPage() {
       {error && <Message type="error">{error}</Message>}
 
       {isLoading ? (
-        <LoadingState label="Загружаю публичные ссылки..." />
+        <LoadingState label={t("publicLinks.loading")} />
       ) : links.length ? (
         <>
           <div className="cards-grid">
@@ -79,15 +82,15 @@ export default function PublicLinksPage() {
           {canLoadMore && (
             <div className="load-more-row">
               <button disabled={isLoadingMore} onClick={() => void loadPublic(offset, true)} type="button">
-                {isLoadingMore ? "Загружаю..." : "Показать ещё"}
+                {isLoadingMore ? t("publicLinks.loadingMore") : t("publicLinks.loadMore")}
               </button>
             </div>
           )}
         </>
       ) : (
         <EmptyState
-          description="Когда кто-то создаст публичную ссылку, она появится здесь."
-          title="Публичных ссылок пока нет"
+          description={t("publicLinks.emptyDescription")}
+          title={t("publicLinks.emptyTitle")}
         />
       )}
     </section>
