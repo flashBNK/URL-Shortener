@@ -710,6 +710,52 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.cards-grid-loading {
+  opacity: 0.56;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.pagination-loading {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.pagination {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.pagination > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.pagination strong {
+  color: var(--text-strong);
+}
+
+.pagination span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.pagination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .link-card {
   transition:
     transform 160ms ease,
@@ -1362,6 +1408,19 @@ h3 {
   .security-sessions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-actions {
+    justify-content: stretch;
+  }
+
+  .pagination-actions > * {
+    flex: 1;
   }
 
   .click-table {

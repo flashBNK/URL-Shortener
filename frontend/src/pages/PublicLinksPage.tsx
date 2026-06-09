@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { LinkShortSchema } from "../api/types";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import Pagination from "../components/Pagination";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
@@ -12,46 +14,47 @@ const PAGE_LIMIT = 10;
 
 export default function PublicLinksPage() {
   const { t } = useI18n();
-  const loadedRef = useRef(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parsePage(searchParams.get("page"));
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
   const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
   const [error, setError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  async function loadPublic(nextOffset = 0, append = false) {
+  async function loadPublic(page = currentPage) {
     setError("");
-    append ? setIsLoadingMore(true) : setIsLoading(true);
+    setIsLoading(true);
 
     try {
-      const response = await api.getPublicLinks(PAGE_LIMIT, nextOffset);
-      setLinks((current) => (append ? [...current, ...response.items] : response.items));
+      const response = await api.getPublicLinks(PAGE_LIMIT, (page - 1) * PAGE_LIMIT);
+      setLinks(response.items);
       setTotal(response.total);
-      setOffset(response.offset + response.items.length);
     } catch (err) {
-      setError(getApiErrorMessage(err, "errors.loadPublicLinks", t));
+      setError(getApiErrorMessage(err, "errors.loadLinksPage", t));
     } finally {
       setIsLoading(false);
-      setIsLoadingMore(false);
     }
   }
 
   useEffect(() => {
-    if (loadedRef.current) {
-      return;
+    void loadPublic(currentPage);
+  }, [currentPage]);
+
+  function handlePageChange(page: number) {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    if (page <= 1) {
+      nextSearchParams.delete("page");
+    } else {
+      nextSearchParams.set("page", String(page));
     }
-    loadedRef.current = true;
-    void loadPublic();
-  }, []);
+    setSearchParams(nextSearchParams);
+  }
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
     setCopyMessage(t("common.copied"));
   }
-
-  const canLoadMore = links.length < total;
 
   return (
     <section className="stack-xl">
@@ -70,29 +73,45 @@ export default function PublicLinksPage() {
       {copyMessage && <Message type="success">{copyMessage}</Message>}
       {error && <Message type="error">{error}</Message>}
 
-      {isLoading ? (
+      {isLoading && links.length === 0 ? (
         <LoadingState label={t("publicLinks.loading")} />
       ) : links.length ? (
         <>
-          <div className="cards-grid">
+          {isLoading && <div className="pagination-loading">{t("common.loading")}</div>}
+          <div className={isLoading ? "cards-grid cards-grid-loading" : "cards-grid"}>
             {links.map((link) => (
               <LinkCard key={link.short_url} link={link} onCopy={copyLink} showAnalytics={false} />
             ))}
           </div>
-          {canLoadMore && (
-            <div className="load-more-row">
-              <button disabled={isLoadingMore} onClick={() => void loadPublic(offset, true)} type="button">
-                {isLoadingMore ? t("publicLinks.loadingMore") : t("publicLinks.loadMore")}
-              </button>
-            </div>
-          )}
+          <Pagination
+            page={currentPage}
+            limit={PAGE_LIMIT}
+            total={total}
+            isLoading={isLoading}
+            onPageChange={handlePageChange}
+          />
         </>
       ) : (
         <EmptyState
-          description={t("publicLinks.emptyDescription")}
-          title={t("publicLinks.emptyTitle")}
+          description={currentPage > 1 ? t("common.noLinksOnPage") : t("publicLinks.emptyDescription")}
+          title={currentPage > 1 ? t("common.noLinksOnPage") : t("publicLinks.emptyTitle")}
+        />
+      )}
+
+      {!isLoading && links.length === 0 && total > 0 && (
+        <Pagination
+          page={currentPage}
+          limit={PAGE_LIMIT}
+          total={total}
+          isLoading={isLoading}
+          onPageChange={handlePageChange}
         />
       )}
     </section>
   );
+}
+
+function parsePage(value: string | null): number {
+  const page = Number(value);
+  return Number.isInteger(page) && page > 0 ? page : 1;
 }

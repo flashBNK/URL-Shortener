@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { LinkSchema, LinkShortSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
@@ -10,16 +10,21 @@ import LinkCard from "../components/LinkCard";
 import LinkForm from "../components/LinkForm";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import Pagination from "../components/Pagination";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
+
+const PAGE_LIMIT = 10;
 
 export default function DashboardPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const state = location.state as { message?: string } | null;
-  const loadedRef = useRef(false);
+  const currentPage = parsePage(searchParams.get("page"));
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -28,15 +33,16 @@ export default function DashboardPage() {
   const [deletingLink, setDeletingLink] = useState<LinkShortSchema | null>(null);
   const [editingLink, setEditingLink] = useState<LinkShortSchema | null>(null);
 
-  async function loadLinks() {
+  async function loadLinks(page = currentPage) {
     setError("");
     setIsLoading(true);
 
     try {
-      const response = await api.getMyLinks(30, 0);
+      const response = await api.getMyLinks(PAGE_LIMIT, (page - 1) * PAGE_LIMIT);
       setLinks(response.items);
+      setTotal(response.total);
     } catch (err) {
-      setError(getApiErrorMessage(err, "errors.loadLinks", t));
+      setError(getApiErrorMessage(err, "errors.loadLinksPage", t));
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +51,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (state?.message) {
       setSuccessMessage(state.message);
-      navigate(location.pathname, { replace: true });
+      navigate(`${location.pathname}${location.search}`, { replace: true });
     }
 
     if (!isAuthenticated()) {
@@ -53,12 +59,18 @@ export default function DashboardPage() {
       return;
     }
 
-    if (loadedRef.current) {
-      return;
+    void loadLinks(currentPage);
+  }, [currentPage, location.pathname, location.search, navigate, state?.message]);
+
+  function handlePageChange(page: number) {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    if (page <= 1) {
+      nextSearchParams.delete("page");
+    } else {
+      nextSearchParams.set("page", String(page));
     }
-    loadedRef.current = true;
-    void loadLinks();
-  }, [location.pathname, navigate, state?.message]);
+    setSearchParams(nextSearchParams);
+  }
 
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
@@ -84,9 +96,16 @@ export default function DashboardPage() {
   }
 
   function handleLinkDeleted(shortUrl: string) {
-    setLinks((current) => current.filter((link) => link.short_url !== shortUrl));
     setDeletingLink(null);
     setSuccessMessage(t("deleteLink.deleted"));
+
+    const remainingLinks = links.filter((link) => link.short_url !== shortUrl);
+    if (remainingLinks.length === 0 && currentPage > 1) {
+      handlePageChange(currentPage - 1);
+      return;
+    }
+
+    void loadLinks(currentPage);
   }
 
   return (
@@ -105,7 +124,7 @@ export default function DashboardPage() {
       {showQuickCreate && (
         <section className="panel-section">
           <h2>{t("dashboard.quickCreate")}</h2>
-          <LinkForm mode="private" onCreated={() => void loadLinks()} />
+          <LinkForm mode="private" onCreated={() => void loadLinks(currentPage)} />
         </section>
       )}
 
@@ -113,20 +132,30 @@ export default function DashboardPage() {
       {successMessage && <Message type="success">{successMessage}</Message>}
       {error && <Message type="error">{error}</Message>}
 
-      {isLoading ? (
+      {isLoading && links.length === 0 ? (
         <LoadingState label={t("dashboard.loading")} />
       ) : links.length ? (
-        <div className="cards-grid">
-          {links.map((link) => (
-            <LinkCard
-              key={link.short_url}
-              link={link}
-              onCopy={copyLink}
-              onDelete={setDeletingLink}
-              onEdit={setEditingLink}
-            />
-          ))}
-        </div>
+        <>
+          {isLoading && <div className="pagination-loading">{t("common.loading")}</div>}
+          <div className={isLoading ? "cards-grid cards-grid-loading" : "cards-grid"}>
+            {links.map((link) => (
+              <LinkCard
+                key={link.short_url}
+                link={link}
+                onCopy={copyLink}
+                onDelete={setDeletingLink}
+                onEdit={setEditingLink}
+              />
+            ))}
+          </div>
+          <Pagination
+            page={currentPage}
+            limit={PAGE_LIMIT}
+            total={total}
+            isLoading={isLoading}
+            onPageChange={handlePageChange}
+          />
+        </>
       ) : (
         <EmptyState
           action={
@@ -134,8 +163,18 @@ export default function DashboardPage() {
               {t("dashboard.createFirst")}
             </button>
           }
-          description={t("dashboard.emptyDescription")}
-          title={t("dashboard.emptyTitle")}
+          description={currentPage > 1 ? t("common.noLinksOnPage") : t("dashboard.emptyDescription")}
+          title={currentPage > 1 ? t("common.noLinksOnPage") : t("dashboard.emptyTitle")}
+        />
+      )}
+
+      {!isLoading && links.length === 0 && total > 0 && (
+        <Pagination
+          page={currentPage}
+          limit={PAGE_LIMIT}
+          total={total}
+          isLoading={isLoading}
+          onPageChange={handlePageChange}
         />
       )}
 
@@ -153,4 +192,9 @@ export default function DashboardPage() {
       )}
     </section>
   );
+}
+
+function parsePage(value: string | null): number {
+  const page = Number(value);
+  return Number.isInteger(page) && page > 0 ? page : 1;
 }
