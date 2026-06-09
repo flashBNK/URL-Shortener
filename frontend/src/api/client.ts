@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken } from "../auth/tokenStore";
+import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "../auth/tokenStore";
 import {
   ApiError,
   type CreateLinkPayload,
@@ -13,6 +13,8 @@ import {
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 const apiV1Url = `${apiBaseUrl}/api/v1`;
+
+let refreshPromise: Promise<TokenSchema> | null = null;
 
 type RequestOptions = {
   auth?: boolean;
@@ -50,7 +52,65 @@ async function readErrorMessage(response: Response): Promise<string> {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}, options: RequestOptions = {}): Promise<T> {
+async function refreshTokens(refreshToken: string): Promise<TokenSchema> {
+  const response = await fetch(buildUrl("/auth/token/refresh"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+
+  if (!response.ok) {
+    const message = await readErrorMessage(response);
+
+    if (response.status === 401) {
+      throw new ApiError(response.status, "unauthorized", "unauthorized");
+    }
+
+    if (response.status === 429) {
+      throw new ApiError(response.status, "rate_limit", "rate_limit");
+    }
+
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<TokenSchema>;
+}
+
+function getSharedRefreshPromise(refreshToken: string): Promise<TokenSchema> {
+  if (!refreshPromise) {
+    if (import.meta.env.DEV) {
+      console.debug("access token expired, refreshing");
+    }
+
+    refreshPromise = refreshTokens(refreshToken)
+      .then((tokens) => {
+        if (import.meta.env.DEV) {
+          console.debug("refresh succeeded");
+        }
+        return tokens;
+      })
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.debug("refresh failed");
+        }
+        throw error;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  options: RequestOptions = {},
+  retryOnUnauthorized = true,
+): Promise<T> {
   const headers = new Headers(init.headers);
 
   if (init.body && !headers.has("Content-Type")) {
@@ -73,6 +133,21 @@ async function request<T>(path: string, init: RequestInit = {}, options: Request
     const message = await readErrorMessage(response);
 
     if (response.status === 401) {
+      if (options.auth && retryOnUnauthorized) {
+        const refreshToken = getRefreshToken();
+
+        if (refreshToken) {
+          try {
+            const tokens = await getSharedRefreshPromise(refreshToken);
+            saveTokens(tokens);
+            return request<T>(path, init, options, false);
+          } catch {
+            clearTokens();
+            throw new ApiError(response.status, "unauthorized", "unauthorized");
+          }
+        }
+      }
+
       clearTokens();
       throw new ApiError(response.status, "unauthorized", "unauthorized");
     }
@@ -99,6 +174,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+  refreshToken(refreshToken: string) {
+    return refreshTokens(refreshToken);
   },
   register(payload: { username: string; email: string; password: string }) {
     return request<UserSchema>("/user", {
@@ -141,6 +219,9 @@ export const api = {
   },
   logout() {
     return request<void>("/auth/logout", { method: "POST" }, { auth: true });
+  },
+  revokeAllTokens() {
+    return request<void>("/auth/revoke-all", { method: "POST" }, { auth: true });
   },
   createLink(payload: CreateLinkPayload, auth = false) {
     return request<LinkSchema>(

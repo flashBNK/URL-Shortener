@@ -1232,6 +1232,23 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.security-sessions {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.security-sessions h2 {
+  margin-bottom: 8px;
+}
+
+.security-sessions p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 0;
+}
+
 .password-field {
   position: relative;
 }
@@ -1338,6 +1355,11 @@ h3 {
   .dashboard-hero,
   .details-hero,
   .danger-zone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .security-sessions {
     align-items: stretch;
     flex-direction: column;
   }

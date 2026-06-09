@@ -25,11 +25,14 @@ export default function AccountPage() {
   const [profileError, setProfileError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [deleteError, setDeleteError] = useState("");
+  const [revokeError, setRevokeError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRevokeOpen, setIsRevokeOpen] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -138,6 +141,33 @@ export default function AccountPage() {
     } catch (err) {
       setDeleteError(getAccountErrorMessage(err, "account.errorDelete", t));
       setIsDeleting(false);
+    }
+  }
+
+  async function handleRevokeAllTokens() {
+    setRevokeError("");
+    setIsRevoking(true);
+
+    try {
+      await api.revokeAllTokens();
+      clearTokens();
+      navigate("/login", { state: { message: t("account.allSessionsSignedOut") } });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearTokens();
+        navigate("/login", { state: { message: t("errors.sessionExpired") } });
+        return;
+      }
+
+      if (err instanceof ApiError && err.status === 404) {
+        clearTokens();
+        navigate("/login", { state: { message: t("account.sessionsNotFound") } });
+        return;
+      }
+
+      setRevokeError(getAccountErrorMessage(err, "account.errorRevokeAll", t));
+    } finally {
+      setIsRevoking(false);
     }
   }
 
@@ -250,6 +280,24 @@ export default function AccountPage() {
         </div>
       </form>
 
+      <section className="panel-section security-sessions">
+        <div>
+          <p className="eyebrow">{t("account.security")}</p>
+          <h2>{t("account.signOutAllDevices")}</h2>
+          <p>{t("account.signOutAllDescription")}</p>
+        </div>
+        <button
+          className="secondary-button"
+          onClick={() => {
+            setRevokeError("");
+            setIsRevokeOpen(true);
+          }}
+          type="button"
+        >
+          {t("account.signOutAllDevices")}
+        </button>
+      </section>
+
       <section className="danger-zone">
         <div>
           <p className="eyebrow">{t("account.dangerZone")}</p>
@@ -294,6 +342,48 @@ export default function AccountPage() {
               </button>
               <button className="danger-button" disabled={isDeleting} onClick={() => void handleDeleteAccount()} type="button">
                 {isDeleting ? t("account.deletingAccount") : t("account.deleteAccount")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRevokeOpen && (
+        <div aria-labelledby="revoke-all-title" aria-modal="true" className="modal-backdrop" role="dialog">
+          <div className="edit-modal delete-modal">
+            <div className="modal-heading">
+              <div>
+                <p className="eyebrow">{t("account.security")}</p>
+                <h2 id="revoke-all-title">{t("account.signOutAllQuestion")}</h2>
+              </div>
+              <button
+                aria-label={t("account.cancel")}
+                className="icon-close"
+                disabled={isRevoking}
+                onClick={() => setIsRevokeOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <p className="delete-warning">{t("account.signOutAllModalDescription")}</p>
+            {revokeError && <Message type="error">{revokeError}</Message>}
+            <div className="modal-actions">
+              <button
+                className="ghost-button"
+                disabled={isRevoking}
+                onClick={() => setIsRevokeOpen(false)}
+                type="button"
+              >
+                {t("account.cancel")}
+              </button>
+              <button
+                className="secondary-button"
+                disabled={isRevoking}
+                onClick={() => void handleRevokeAllTokens()}
+                type="button"
+              >
+                {isRevoking ? t("account.signingOutSessions") : t("account.signOutAllDevices")}
               </button>
             </div>
           </div>
