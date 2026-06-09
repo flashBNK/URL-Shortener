@@ -687,6 +687,42 @@ h3 {
     var(--card);
 }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.public-create-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.public-list-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.public-toolbar {
+  align-items: end;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 16px;
+}
+
+.public-toolbar label {
+  color: var(--text);
+  display: grid;
+  font-weight: 800;
+  gap: 8px;
+}
+
 .hero-stat {
   background: var(--text-strong);
   border-radius: 16px;
@@ -769,6 +805,13 @@ h3 {
   justify-content: space-between;
 }
 
+.link-card-badges {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .link-card-title {
   color: var(--text-strong);
   font-size: 1.05rem;
@@ -792,6 +835,11 @@ h3 {
 .status-inactive {
   background: var(--danger-bg);
   color: var(--danger-text);
+}
+
+.status-public {
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .link-card-meta {
@@ -1427,6 +1475,21 @@ h3 {
 
   .pagination-actions > * {
     flex: 1;
+  }
+
+  .public-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .link-card-top {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .link-card-badges {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
   .click-table {
