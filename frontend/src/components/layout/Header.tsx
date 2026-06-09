@@ -34,6 +34,16 @@ export default function Header() {
       });
   }, [location.pathname]);
 
+  useEffect(() => {
+    function handleUserUpdated(event: Event) {
+      const customEvent = event as CustomEvent<UserSchema>;
+      setUser(customEvent.detail);
+    }
+
+    window.addEventListener("account:user-updated", handleUserUpdated);
+    return () => window.removeEventListener("account:user-updated", handleUserUpdated);
+  }, []);
+
   async function handleLogout() {
     try {
       await api.logout();
@@ -60,6 +70,7 @@ export default function Header() {
         <NavLink to="/">{t("header.home")}</NavLink>
         <NavLink to="/public">{t("header.publicLinks")}</NavLink>
         <NavLink to="/dashboard">{t("header.dashboard")}</NavLink>
+        {authenticated && <NavLink to="/account">{t("header.account")}</NavLink>}
       </nav>
 
       <div className="header-actions">
@@ -82,7 +93,9 @@ export default function Header() {
         </div>
         {authenticated ? (
           <>
-            <span className="user-chip">{user?.username ?? t("header.account")}</span>
+            <NavLink className="user-chip" to="/account">
+              {user?.username ?? t("header.account")}
+            </NavLink>
             <button className="secondary-button compact" onClick={handleLogout} type="button">
               {t("header.logout")}
             </button>

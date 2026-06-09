@@ -109,6 +109,36 @@ export const api = {
   getMe() {
     return request<UserSchema>("/user/me", {}, { auth: true });
   },
+  updateUser(payload: { username?: string; email?: string }) {
+    return request<UserSchema>(
+      "/user",
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      },
+      { auth: true },
+    );
+  },
+  changePassword(payload: { current_password: string; new_password: string }) {
+    return request<void>(
+      "/user/change-password",
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      },
+      { auth: true },
+    );
+  },
+  deleteAccount(payload: { current_password: string }) {
+    return request<void>(
+      "/user",
+      {
+        method: "DELETE",
+        body: JSON.stringify(payload),
+      },
+      { auth: true },
+    );
+  },
   logout() {
     return request<void>("/auth/logout", { method: "POST" }, { auth: true });
   },
