@@ -43,6 +43,7 @@ export const translations = {
     },
     errors: {
       createLink: "Не удалось создать ссылку.",
+      loadClickHistory: "Не удалось загрузить историю переходов.",
       loadLink: "Не удалось загрузить ссылку.",
       loadLinks: "Не удалось загрузить ссылки.",
       loadLinksPage: "Не удалось загрузить страницу ссылок.",
@@ -252,6 +253,8 @@ export const translations = {
     },
     details: {
       browser: "Браузер",
+      clickHistory: "История переходов",
+      clickHistoryLoading: "Загружаю историю переходов...",
       clicksEmptyDescription: "После первых переходов здесь появится список последних кликов.",
       clicksEmptyTitle: "Кликов пока нет",
       clicksTotal: "{count} всего",
@@ -261,6 +264,7 @@ export const translations = {
       eventsEyebrow: "События",
       lastClicks: "Последние клики",
       linkAnalytics: "Аналитика ссылки",
+      noClicksOnPage: "Кликов на этой странице нет",
       noUserAgent: "Нет данных",
       returnDashboard: "Вернуться в кабинет",
       unknownCountry: "Неизвестно",
@@ -331,6 +335,7 @@ export const translations = {
     },
     errors: {
       createLink: "Could not create the link.",
+      loadClickHistory: "Failed to load click history.",
       loadLink: "Could not load the link.",
       loadLinks: "Could not load links.",
       loadLinksPage: "Could not load the links page.",
@@ -540,6 +545,8 @@ export const translations = {
     },
     details: {
       browser: "Browser",
+      clickHistory: "Click history",
+      clickHistoryLoading: "Loading click history...",
       clicksEmptyDescription: "Recent clicks will appear here after the first visits.",
       clicksEmptyTitle: "No clicks yet",
       clicksTotal: "{count} total",
@@ -549,6 +556,7 @@ export const translations = {
       eventsEyebrow: "Events",
       lastClicks: "Recent clicks",
       linkAnalytics: "Link analytics",
+      noClicksOnPage: "No clicks on this page",
       noUserAgent: "No data",
       returnDashboard: "Return to dashboard",
       unknownCountry: "Unknown",

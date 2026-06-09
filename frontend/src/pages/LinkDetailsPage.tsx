@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, publicBaseUrl } from "../api/client";
 import {
   type GroupByCountryLinkSchema,
@@ -13,6 +13,7 @@ import EditLinkModal from "../components/EditLinkModal";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import Pagination from "../components/Pagination";
 import StatsCards from "../components/StatsCards";
 import { isAuthenticated } from "../auth/tokenStore";
 import { useI18n } from "../i18n/I18nProvider";
@@ -20,28 +21,36 @@ import { getApiErrorMessage } from "../utils/apiErrors";
 import { formatDateTime } from "../utils/formatters";
 import { summarizeUserAgent } from "../utils/userAgent";
 
+const CLICKS_PAGE_LIMIT = 10;
+
 export default function LinkDetailsPage() {
   const { language, t } = useI18n();
   const { shortUrl = "" } = useParams();
   const navigate = useNavigate();
-  const loadedRef = useRef("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentClicksPage = parsePage(searchParams.get("clicksPage"));
   const [link, setLink] = useState<LinkSchema | null>(null);
   const [stats, setStats] = useState<GroupByCountryLinkSchema | null>(null);
   const [clicks, setClicks] = useState<ListLinkClicksSchema | null>(null);
   const [currentUser, setCurrentUser] = useState<UserSchema | null>(null);
   const [error, setError] = useState("");
   const [statsError, setStatsError] = useState(false);
+  const [clicksError, setClicksError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isClicksLoading, setIsClicksLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    async function load() {
+    async function loadDetails() {
       setError("");
       setStatsError(false);
       setIsLoading(true);
+      setLink(null);
+      setStats(null);
+      setCurrentUser(null);
 
       try {
         const linkResponse = await api.getLink(shortUrl);
@@ -53,30 +62,69 @@ export default function LinkDetailsPage() {
       }
 
       try {
-        const [statsResponse, clicksResponse, userResponse] = await Promise.all([
+        const [statsResponse, userResponse] = await Promise.all([
           api.getStats(shortUrl),
-          api.getClicks(shortUrl),
           isAuthenticated() ? api.getMe().catch(() => null) : Promise.resolve(null),
         ]);
         setStats(statsResponse);
-        setClicks(clicksResponse);
         setCurrentUser(userResponse);
       } catch {
         setStats(null);
-        setClicks(null);
         setStatsError(true);
       } finally {
         setIsLoading(false);
       }
     }
 
-    if (!shortUrl || loadedRef.current === shortUrl) {
+    if (!shortUrl) {
       return;
     }
 
-    loadedRef.current = shortUrl;
-    void load();
+    void loadDetails();
   }, [shortUrl, t]);
+
+  useEffect(() => {
+    async function loadClicks() {
+      if (!shortUrl) {
+        return;
+      }
+
+      setClicksError("");
+      setIsClicksLoading(true);
+
+      try {
+        const response = await api.getClicks(
+          shortUrl,
+          CLICKS_PAGE_LIMIT,
+          (currentClicksPage - 1) * CLICKS_PAGE_LIMIT,
+        );
+
+        if (response.items.length === 0 && response.total > 0 && currentClicksPage > 1) {
+          handleClicksPageChange(currentClicksPage - 1);
+          return;
+        }
+
+        setClicks(response);
+      } catch (err) {
+        setClicks(null);
+        setClicksError(getApiErrorMessage(err, "errors.loadClickHistory", t));
+      } finally {
+        setIsClicksLoading(false);
+      }
+    }
+
+    void loadClicks();
+  }, [shortUrl, currentClicksPage, t]);
+
+  function handleClicksPageChange(page: number) {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    if (page <= 1) {
+      nextSearchParams.delete("clicksPage");
+    } else {
+      nextSearchParams.set("clicksPage", String(page));
+    }
+    setSearchParams(nextSearchParams);
+  }
 
   async function copyShortLink() {
     if (!link) {
@@ -102,7 +150,6 @@ export default function LinkDetailsPage() {
     setSuccessMessage(t("editLink.saved"));
 
     if (previousShortUrl && updatedLink.short_url !== previousShortUrl) {
-      loadedRef.current = "";
       navigate(`/links/${updatedLink.short_url}`, { replace: true });
     }
   }
@@ -189,43 +236,67 @@ export default function LinkDetailsPage() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">{t("details.eventsEyebrow")}</p>
-            <h2>{t("details.lastClicks")}</h2>
+            <h2>{t("details.clickHistory")}</h2>
           </div>
           <span className="muted">{t("details.clicksTotal", { count: clicks?.total ?? 0 })}</span>
         </div>
 
-        {clicks?.items.length ? (
-          <div className="click-table">
-            <div className="click-table-head">
-              <span>{t("details.date")}</span>
-              <span>{t("details.country")}</span>
-              <span>{t("common.ip")}</span>
-              <span>{t("common.userAgent")}</span>
-            </div>
-            {clicks.items.map((click) => (
-              <div className="click-table-row" key={`${click.ip}-${click.clicked_at}`}>
-                <span>{formatDateTime(click.clicked_at, language)}</span>
-                <span>{click.country ?? t("details.unknownCountry")}</span>
-                <span>{click.ip}</span>
-                <span className="user-agent-cell" title={click.user_agent ?? t("details.noUserAgent")}>
-                  <span>{click.user_agent ? summarizeUserAgent(click.user_agent) : t("details.noUserAgent")}</span>
-                  {click.user_agent && (
-                    <button
-                      className="text-button"
-                      onClick={() => void copyUserAgent(click.user_agent)}
-                      type="button"
-                    >
-                      {t("common.copy")}
-                    </button>
-                  )}
-                </span>
+        {clicksError && <Message type="error">{clicksError}</Message>}
+
+        {!clicksError && isClicksLoading && !clicks ? (
+          <LoadingState label={t("details.clickHistoryLoading")} />
+        ) : !clicksError && clicks?.items.length ? (
+          <>
+            {isClicksLoading && <div className="pagination-loading">{t("common.loading")}</div>}
+            <div className={isClicksLoading ? "click-table click-table-loading" : "click-table"}>
+              <div className="click-table-head">
+                <span>{t("details.date")}</span>
+                <span>{t("details.country")}</span>
+                <span>{t("common.ip")}</span>
+                <span>{t("common.userAgent")}</span>
               </div>
-            ))}
-          </div>
-        ) : (
+              {clicks.items.map((click) => (
+                <div className="click-table-row" key={`${click.ip}-${click.clicked_at}`}>
+                  <span>{formatDateTime(click.clicked_at, language)}</span>
+                  <span>{click.country ?? t("details.unknownCountry")}</span>
+                  <span>{click.ip}</span>
+                  <span className="user-agent-cell" title={click.user_agent ?? t("details.noUserAgent")}>
+                    <span>{click.user_agent ? summarizeUserAgent(click.user_agent) : t("details.noUserAgent")}</span>
+                    {click.user_agent && (
+                      <button
+                        className="text-button"
+                        onClick={() => void copyUserAgent(click.user_agent)}
+                        type="button"
+                      >
+                        {t("common.copy")}
+                      </button>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <Pagination
+              page={currentClicksPage}
+              limit={CLICKS_PAGE_LIMIT}
+              total={clicks.total}
+              isLoading={isClicksLoading}
+              onPageChange={handleClicksPageChange}
+            />
+          </>
+        ) : !clicksError ? (
           <EmptyState
-            description={t("details.clicksEmptyDescription")}
-            title={t("details.clicksEmptyTitle")}
+            description={currentClicksPage > 1 ? t("details.noClicksOnPage") : t("details.clicksEmptyDescription")}
+            title={currentClicksPage > 1 ? t("details.noClicksOnPage") : t("details.clicksEmptyTitle")}
+          />
+        ) : null}
+
+        {!isClicksLoading && !clicksError && clicks && clicks.items.length === 0 && clicks.total > 0 && (
+          <Pagination
+            page={currentClicksPage}
+            limit={CLICKS_PAGE_LIMIT}
+            total={clicks.total}
+            isLoading={isClicksLoading}
+            onPageChange={handleClicksPageChange}
           />
         )}
       </section>
@@ -236,4 +307,9 @@ export default function LinkDetailsPage() {
       )}
     </section>
   );
+}
+
+function parsePage(value: string | null): number {
+  const page = Number(value);
+  return Number.isInteger(page) && page > 0 ? page : 1;
 }

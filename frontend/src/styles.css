@@ -952,6 +952,12 @@ h3 {
   overflow: hidden;
 }
 
+.click-table-loading {
+  opacity: 0.56;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
 .click-table-head,
 .click-table-row {
   display: grid;
