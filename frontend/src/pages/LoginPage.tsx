@@ -4,12 +4,14 @@ import { api } from "../api/client";
 import { saveTokens } from "../auth/tokenStore";
 import Message from "../components/Message";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
 export default function LoginPage() {
   const { t } = useI18n();
+  usePageTitle("pageTitles.login");
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { message?: string } | null;

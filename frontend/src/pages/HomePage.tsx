@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import HeroSection from "../components/HeroSection";
 import Message from "../components/Message";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useI18n } from "../i18n/I18nProvider";
 
 export default function HomePage() {
   const { t } = useI18n();
+  usePageTitle("pageTitles.home");
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as { message?: string } | null;

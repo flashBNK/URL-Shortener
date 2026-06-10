@@ -22,11 +22,15 @@ export function getApiErrorMessage(error: unknown, fallback: TranslationKey, t: 
     return t("errors.rateLimit");
   }
 
+  if (error.code === "network_error" || error.status === 0) {
+    return t("errors.network");
+  }
+
   if (error.status === 403) {
     return t("errors.forbidden");
   }
 
-  return error.message || t(fallback);
+  return t(fallback);
 }
 
 function includesAny(value: string, patterns: string[]) {
@@ -44,6 +48,13 @@ export function getCreateLinkError(error: unknown, t: Translate): CreateLinkErro
   }
 
   const message = error.message.toLowerCase();
+
+  if (error.code === "network_error" || error.status === 0) {
+    return {
+      field: "form",
+      message: t("errors.network"),
+    };
+  }
 
   if (error.code === "unauthorized" || error.status === 401) {
     return {

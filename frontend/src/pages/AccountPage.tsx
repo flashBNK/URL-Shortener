@@ -6,6 +6,7 @@ import { clearTokens, isAuthenticated } from "../auth/tokenStore";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
@@ -13,6 +14,7 @@ import { formatDate } from "../utils/formatters";
 
 export default function AccountPage() {
   const { language, t } = useI18n();
+  usePageTitle("pageTitles.account");
   const navigate = useNavigate();
   const [user, setUser] = useState<UserSchema | null>(null);
   const [username, setUsername] = useState("");
@@ -450,6 +452,10 @@ function getAccountErrorMessage(error: unknown, fallback: TranslationKey, t: (ke
     return t("errors.rateLimit");
   }
 
+  if (error.code === "network_error" || error.status === 0) {
+    return t("errors.network");
+  }
+
   if (error.status === 403) {
     return t("account.errorForbidden");
   }
@@ -462,5 +468,5 @@ function getAccountErrorMessage(error: unknown, fallback: TranslationKey, t: (ke
     return t("account.errorBadRequest");
   }
 
-  return error.message || t(fallback);
+  return t(fallback);
 }

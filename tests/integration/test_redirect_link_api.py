@@ -101,7 +101,7 @@ async def test_redirect_link_ignores_cache_set_failure_after_database_lookup(cli
 
 
 @pytest.mark.asyncio
-async def test_redirect_link_not_found(client):
+async def test_redirect_link_not_found_redirects_to_frontend_404(client):
 
     with (
         patch(
@@ -119,7 +119,8 @@ async def test_redirect_link_not_found(client):
             follow_redirects=False,
         )
 
-    assert response.status_code == 404
+    assert response.status_code == 307
+    assert response.headers["location"] == "http://localhost:5173/unknown123"
 
 
 

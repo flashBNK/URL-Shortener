@@ -1,4 +1,4 @@
-export type ApiErrorCode = "unauthorized" | "rate_limit" | "api_error";
+export type ApiErrorCode = "unauthorized" | "rate_limit" | "network_error" | "api_error";
 
 export class ApiError extends Error {
   status: number;

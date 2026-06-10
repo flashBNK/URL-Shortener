@@ -12,6 +12,7 @@ import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import Pagination from "../components/Pagination";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
@@ -20,6 +21,7 @@ const PAGE_LIMIT = 10;
 
 export default function DashboardPage() {
   const { t } = useI18n();
+  usePageTitle("pageTitles.dashboard");
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();

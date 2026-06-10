@@ -18,6 +18,7 @@ import Pagination from "../components/Pagination";
 import RateLimitNotice from "../components/RateLimitNotice";
 import StatsCards from "../components/StatsCards";
 import { isAuthenticated } from "../auth/tokenStore";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
@@ -29,6 +30,7 @@ const CLICKS_PAGE_LIMIT = 10;
 
 export default function LinkDetailsPage() {
   const { language, t } = useI18n();
+  usePageTitle("pageTitles.details");
   const { shortUrl = "" } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

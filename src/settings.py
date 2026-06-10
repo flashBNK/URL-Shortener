@@ -18,6 +18,7 @@ class _AppSettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
+    frontend_base_url: str = "http://localhost:5173"
     secret_key: SecretStr           # берётся из APP_SECRET_KEY в .env
     safe_browsing_api_key: SecretStr  # берётся из APP_SAFE_BROWSING_API_KEY в .env
 

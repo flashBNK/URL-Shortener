@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import Message from "../components/Message";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
 export default function RegisterPage() {
   const { t } = useI18n();
+  usePageTitle("pageTitles.register");
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");

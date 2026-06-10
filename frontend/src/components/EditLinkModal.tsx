@@ -236,6 +236,10 @@ function getEditErrorMessage(error: unknown, t: (key: TranslationKey) => string)
     return t("errors.rateLimit");
   }
 
+  if (error.code === "network_error" || error.status === 0) {
+    return t("errors.network");
+  }
+
   if (error.status === 403) {
     return t("editLink.errorForbidden");
   }
@@ -248,5 +252,5 @@ function getEditErrorMessage(error: unknown, t: (key: TranslationKey) => string)
     return t("editLink.errorAliasTaken");
   }
 
-  return error.message || t("editLink.errorGeneric");
+  return t("editLink.errorGeneric");
 }

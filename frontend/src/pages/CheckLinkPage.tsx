@@ -5,6 +5,7 @@ import { ApiError, type LinkSchema } from "../api/types";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
@@ -64,6 +65,7 @@ function parseShortLinkInput(value: string): ParseResult {
 
 export default function CheckLinkPage() {
   const { language, t } = useI18n();
+  usePageTitle("pageTitles.check");
   const [searchParams, setSearchParams] = useSearchParams();
   const [inputValue, setInputValue] = useState(searchParams.get("short") ?? "");
   const [link, setLink] = useState<LinkSchema | null>(null);
@@ -280,6 +282,10 @@ function getCheckLinkErrorMessage(error: unknown, t: (key: TranslationKey) => st
 
   if (error.code === "rate_limit" || error.status === 429) {
     return t("errors.rateLimit");
+  }
+
+  if (error.code === "network_error" || error.status === 0) {
+    return t("errors.network");
   }
 
   if (error.status === 404) {

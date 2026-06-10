@@ -78,6 +78,10 @@ function getDeleteErrorMessage(error: unknown, t: (key: TranslationKey) => strin
     return t("errors.rateLimit");
   }
 
+  if (error.code === "network_error" || error.status === 0) {
+    return t("errors.network");
+  }
+
   if (error.status === 403) {
     return t("deleteLink.errorForbidden");
   }
@@ -86,5 +90,5 @@ function getDeleteErrorMessage(error: unknown, t: (key: TranslationKey) => strin
     return t("deleteLink.errorNotFound");
   }
 
-  return error.message || t("deleteLink.errorGeneric");
+  return t("deleteLink.errorGeneric");
 }

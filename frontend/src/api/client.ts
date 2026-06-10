@@ -83,8 +83,16 @@ function createRateLimitError(response: Response) {
   });
 }
 
+async function safeFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new ApiError(0, "network_error", "network_error");
+  }
+}
+
 async function refreshTokens(refreshToken: string): Promise<TokenSchema> {
-  const response = await fetch(buildUrl("/auth/token/refresh"), {
+  const response = await safeFetch(buildUrl("/auth/token/refresh"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -155,7 +163,7 @@ async function request<T>(
     }
   }
 
-  const response = await fetch(buildUrl(path, options.query), {
+  const response = await safeFetch(buildUrl(path, options.query), {
     ...init,
     headers,
   });
@@ -172,7 +180,11 @@ async function request<T>(
             const tokens = await getSharedRefreshPromise(refreshToken);
             saveTokens(tokens);
             return request<T>(path, init, options, false);
-          } catch {
+          } catch (refreshError) {
+            if (refreshError instanceof ApiError && refreshError.code === "network_error") {
+              throw refreshError;
+            }
+
             clearTokens();
             throw new ApiError(response.status, "unauthorized", "unauthorized");
           }
@@ -272,7 +284,7 @@ export const api = {
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("offset", String(offset));
 
-    return fetch(url.toString()).then(async (response) => {
+    return safeFetch(url.toString()).then(async (response) => {
       if (!response.ok) {
         const message = await readErrorMessage(response);
 

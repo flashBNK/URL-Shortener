@@ -696,6 +696,7 @@ h3 {
 }
 
 .message {
+  border: 1px solid transparent;
   border-radius: 12px;
   line-height: 1.5;
   padding: 13px 15px;
@@ -703,16 +704,19 @@ h3 {
 
 .message-error {
   background: var(--danger-bg);
+  border-color: color-mix(in srgb, var(--danger-text) 22%, var(--border));
   color: var(--danger-text);
 }
 
 .message-success {
   background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success-text) 22%, var(--border));
   color: var(--success-text);
 }
 
 .message-info {
   background: var(--info-bg);
+  border-color: color-mix(in srgb, var(--info-text) 22%, var(--border));
   color: var(--info-text);
 }
 
@@ -1011,6 +1015,168 @@ h3 {
   border-radius: 999px;
   height: 34px;
   width: 34px;
+}
+
+.not-found-page,
+.error-boundary-fallback {
+  margin: 0 auto;
+  max-width: 720px;
+}
+
+.not-found-card {
+  align-items: center;
+  background:
+    radial-gradient(circle at 78% 10%, color-mix(in srgb, var(--accent-3) 18%, transparent), transparent 32%),
+    var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 22px;
+  justify-items: center;
+  padding: 34px 28px;
+  text-align: center;
+}
+
+.not-found-card h1 {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  margin-bottom: 12px;
+}
+
+.not-found-card p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.thoughtful-cat {
+  height: 170px;
+  position: relative;
+  width: 190px;
+}
+
+.cat-face {
+  background: color-mix(in srgb, var(--accent-3) 16%, var(--card-solid));
+  border: 3px solid color-mix(in srgb, var(--accent-3) 55%, var(--border));
+  border-radius: 46% 46% 42% 42%;
+  bottom: 0;
+  box-shadow: var(--shadow-soft);
+  height: 136px;
+  left: 20px;
+  position: absolute;
+  width: 150px;
+}
+
+.cat-ear {
+  background: color-mix(in srgb, var(--accent-3) 18%, var(--card-solid));
+  border: 3px solid color-mix(in srgb, var(--accent-3) 55%, var(--border));
+  height: 56px;
+  position: absolute;
+  top: 12px;
+  transform: rotate(45deg);
+  width: 56px;
+}
+
+.cat-ear-left {
+  left: 28px;
+}
+
+.cat-ear-right {
+  right: 28px;
+}
+
+.cat-eye {
+  background: var(--text-strong);
+  border-radius: 999px;
+  height: 13px;
+  position: absolute;
+  top: 54px;
+  width: 13px;
+}
+
+.cat-eye-left {
+  left: 44px;
+}
+
+.cat-eye-right {
+  right: 44px;
+}
+
+.cat-nose {
+  background: color-mix(in srgb, var(--danger-text) 44%, var(--accent-3));
+  border-radius: 50% 50% 58% 58%;
+  height: 10px;
+  left: 68px;
+  position: absolute;
+  top: 77px;
+  width: 14px;
+}
+
+.cat-mouth {
+  border-bottom: 2px solid var(--muted);
+  border-radius: 0 0 999px 999px;
+  height: 12px;
+  left: 62px;
+  position: absolute;
+  top: 88px;
+  width: 26px;
+}
+
+.cat-whisker {
+  background: var(--muted);
+  height: 2px;
+  position: absolute;
+  top: 84px;
+  width: 42px;
+}
+
+.cat-whisker-left-one {
+  left: -8px;
+  transform: rotate(8deg);
+}
+
+.cat-whisker-left-two {
+  left: -6px;
+  top: 98px;
+  transform: rotate(-8deg);
+}
+
+.cat-whisker-right-one {
+  right: -8px;
+  transform: rotate(-8deg);
+}
+
+.cat-whisker-right-two {
+  right: -6px;
+  top: 98px;
+  transform: rotate(8deg);
+}
+
+.cat-thought {
+  align-items: center;
+  background: var(--info-bg);
+  border: 1px solid color-mix(in srgb, var(--info-text) 24%, var(--border));
+  border-radius: 999px;
+  color: var(--info-text);
+  display: inline-flex;
+  font-size: 1.4rem;
+  font-weight: 950;
+  height: 44px;
+  justify-content: center;
+  position: absolute;
+  right: -6px;
+  top: 0;
+  width: 44px;
+}
+
+.error-boundary-fallback pre {
+  background: var(--toggle-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  text-align: left;
 }
 
 @keyframes spin {

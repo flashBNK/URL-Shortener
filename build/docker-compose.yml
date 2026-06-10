@@ -47,6 +47,7 @@ services:
       - DB_HOST=db            # перекрывает localhost из .env
       - DB_PORT=5432          # внутри Docker стандартный порт, не 5433
       - REDIS_URL=redis://redis:6379/0  # перекрывает localhost из .env
+      - APP_FRONTEND_BASE_URL=${APP_FRONTEND_BASE_URL:-http://localhost:5173}
     ports:
       - "8000:8000"
     networks:

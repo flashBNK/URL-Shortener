@@ -10,6 +10,7 @@ import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import Pagination from "../components/Pagination";
 import RateLimitNotice from "../components/RateLimitNotice";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
@@ -19,6 +20,7 @@ const SEARCH_BATCH_LIMIT = 100;
 
 export default function PublicLinksPage() {
   const { t } = useI18n();
+  usePageTitle("pageTitles.publicLinks");
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parsePage(searchParams.get("page"));
   const [links, setLinks] = useState<LinkShortSchema[]>([]);
