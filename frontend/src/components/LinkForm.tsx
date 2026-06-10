@@ -4,7 +4,8 @@ import { api, publicBaseUrl } from "../api/client";
 import type { LinkSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
 import { useI18n } from "../i18n/I18nProvider";
-import { getApiErrorMessage } from "../utils/apiErrors";
+import { getCreateLinkError } from "../utils/apiErrors";
+import { validateCreateLinkUrl, validateOptionalAlias } from "../utils/linkValidation";
 import LinkResultCard from "./LinkResultCard";
 import Message from "./Message";
 
@@ -19,23 +20,44 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
   const [customAlias, setCustomAlias] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("private");
   const [createdLink, setCreatedLink] = useState<LinkSchema | null>(null);
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({ url: "", customAlias: "", form: "" });
+  const [touchedFields, setTouchedFields] = useState({ url: false, customAlias: false });
   const [copyMessage, setCopyMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const authenticated = isAuthenticated();
   const showVisibilitySwitch = mode === "smart" && authenticated;
   const shouldUseAuth = mode === "private" || (showVisibilitySwitch && visibility === "private");
+  const urlClientErrorKey = validateCreateLinkUrl(url);
+  const aliasClientErrorKey = validateOptionalAlias(customAlias);
+  const urlError =
+    fieldErrors.url || (urlClientErrorKey && (touchedFields.url || url) ? t(urlClientErrorKey) : "");
+  const aliasError =
+    fieldErrors.customAlias ||
+    (aliasClientErrorKey && (touchedFields.customAlias || customAlias) ? t(aliasClientErrorKey) : "");
+  const hasClientErrors = Boolean(urlClientErrorKey || aliasClientErrorKey);
+
+  function clearFieldError(field: "url" | "customAlias") {
+    setFieldErrors((currentErrors) => ({ ...currentErrors, [field]: "", form: "" }));
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
+
     const trimmedUrl = url.trim();
-    setError("");
+    const trimmedAlias = customAlias.trim();
+    const currentUrlErrorKey = validateCreateLinkUrl(trimmedUrl);
+    const currentAliasErrorKey = validateOptionalAlias(trimmedAlias);
+
+    setTouchedFields({ url: true, customAlias: true });
+    setFieldErrors({ url: "", customAlias: "", form: "" });
     setCreatedLink(null);
     setCopyMessage("");
 
-    if (!trimmedUrl || trimmedUrl.includes(" ")) {
-      setError(t("errors.createLink"));
+    if (currentUrlErrorKey || currentAliasErrorKey) {
       return;
     }
 
@@ -45,7 +67,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
       const link = await api.createLink(
         {
           url: trimmedUrl,
-          custom_alias: customAlias.trim() ? customAlias.trim() : null,
+          custom_alias: trimmedAlias || null,
         },
         shouldUseAuth,
       );
@@ -54,7 +76,8 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
       setCreatedLink(link);
       onCreated?.(link);
     } catch (err) {
-      setError(getApiErrorMessage(err, "errors.createLink", t));
+      const createError = getCreateLinkError(err, t);
+      setFieldErrors((currentErrors) => ({ ...currentErrors, [createError.field]: createError.message }));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,16 +121,25 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
             <span>{t("linkForm.longUrlLabel")}</span>
             <input
               aria-label={t("linkForm.longUrlLabel")}
-              onChange={(event) => setUrl(event.target.value)}
+              aria-invalid={Boolean(urlError)}
+              className={urlError ? "field-error" : undefined}
+              onBlur={() => setTouchedFields((currentFields) => ({ ...currentFields, url: true }))}
+              onChange={(event) => {
+                setUrl(event.target.value);
+                clearFieldError("url");
+                setTouchedFields((currentFields) => ({ ...currentFields, url: true }));
+              }}
               placeholder={t("linkForm.urlPlaceholder")}
               required
               type="text"
               value={url}
             />
-            <small>{t("linkForm.helperNoScheme")}</small>
+            <small className={urlError ? "field-message field-message-error" : "field-message"}>
+              {urlError || t("linkForm.helperNoScheme")}
+            </small>
           </label>
-          <button disabled={isSubmitting} type="submit">
-            {isSubmitting ? t("linkForm.shortening") : t("linkForm.shorten")}
+          <button disabled={isSubmitting || hasClientErrors} type="submit">
+            {isSubmitting ? t("linkForm.shorteningButton") : t("linkForm.shorten")}
           </button>
         </div>
 
@@ -115,17 +147,25 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
           <label>
             {t("linkForm.aliasLabel")}
             <input
-              maxLength={12}
-              minLength={4}
-              onChange={(event) => setCustomAlias(event.target.value)}
+              aria-invalid={Boolean(aliasError)}
+              className={aliasError ? "field-error" : undefined}
+              onBlur={() => setTouchedFields((currentFields) => ({ ...currentFields, customAlias: true }))}
+              onChange={(event) => {
+                setCustomAlias(event.target.value);
+                clearFieldError("customAlias");
+                setTouchedFields((currentFields) => ({ ...currentFields, customAlias: true }));
+              }}
               placeholder={t("linkForm.aliasPlaceholder")}
               value={customAlias}
             />
           </label>
-          <span>{t("linkForm.aliasHelp")}</span>
+          <span className={aliasError ? "field-message field-message-error" : "field-message"}>
+            {aliasError || t("linkForm.aliasHelp")}
+          </span>
         </div>
 
-        {error && <Message type="error">{error}</Message>}
+        {isSubmitting && <Message type="info">{t("linkForm.shortening")}</Message>}
+        {fieldErrors.form && <Message type="error">{fieldErrors.form}</Message>}
       </form>
 
       {createdLink && (

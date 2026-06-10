@@ -181,6 +181,11 @@ input:focus {
   outline: 0;
 }
 
+input.field-error {
+  border-color: color-mix(in srgb, var(--danger-text) 68%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-text) 14%, transparent);
+}
+
 h1,
 h2,
 h3,
@@ -511,6 +516,11 @@ h3 {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.url-input-row button {
+  min-width: 132px;
+  white-space: nowrap;
+}
+
 .url-field {
   display: grid;
   gap: 8px;
@@ -530,11 +540,15 @@ h3 {
   font-size: 0.92rem;
 }
 
+.field-message-error {
+  color: var(--danger-text) !important;
+}
+
 .alias-row {
-  align-items: end;
+  align-items: start;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(260px, 420px);
 }
 
 .alias-row label,

@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import { ApiError, type LinkSchema, type LinkShortSchema, type UpdateLinkPayload } from "../api/types";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
+import { aliasPattern } from "../utils/linkValidation";
 import Message from "./Message";
 
 type EditableLink = Pick<LinkShortSchema, "url" | "short_url" | "is_active" | "expires_at">;
@@ -12,8 +13,6 @@ type EditLinkModalProps = {
   onClose: () => void;
   onSaved: (link: LinkSchema) => void;
 };
-
-const aliasPattern = /^[A-Za-z0-9_-]+$/;
 
 function toDateTimeLocal(value: string | null) {
   if (!value) {
