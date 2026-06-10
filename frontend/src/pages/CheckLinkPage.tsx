@@ -4,6 +4,8 @@ import { api, publicBaseUrl } from "../api/client";
 import { ApiError, type LinkSchema } from "../api/types";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
 import { formatDateTime } from "../utils/formatters";
@@ -69,6 +71,7 @@ export default function CheckLinkPage() {
   const [copyMessage, setCopyMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const lastRequestedShortUrlRef = useRef("");
+  const rateLimit = useRateLimitCooldown();
 
   const shortLink = link ? `${publicBaseUrl}/${link.short_url}` : "";
   const isExpired = Boolean(link?.expires_at && new Date(link.expires_at).getTime() <= Date.now());
@@ -99,6 +102,7 @@ export default function CheckLinkPage() {
     lastRequestedShortUrlRef.current = shortUrl;
     setIsLoading(true);
     setError("");
+    rateLimit.resetCooldown();
     setCopyMessage("");
     setLink(null);
 
@@ -110,6 +114,10 @@ export default function CheckLinkPage() {
       }
     } catch (err) {
       if (lastRequestedShortUrlRef.current === shortUrl) {
+        if (rateLimit.startCooldown(err)) {
+          return;
+        }
+
         setError(getCheckLinkErrorMessage(err, t));
       }
     } finally {
@@ -178,6 +186,9 @@ export default function CheckLinkPage() {
         </form>
 
         {isLoading && <LoadingState label={t("checkLink.loading")} />}
+        {rateLimit.hasRateLimit && (
+          <RateLimitNotice />
+        )}
         {error && <Message type="error">{error}</Message>}
         {copyMessage && <Message type="success">{copyMessage}</Message>}
       </section>

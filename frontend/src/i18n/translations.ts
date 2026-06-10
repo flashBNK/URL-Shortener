@@ -58,6 +58,11 @@ export const translations = {
       sessionExpired: "Сессия истекла. Войдите снова.",
       statsOwnerOnly: "Статистика доступна только владельцу ссылки.",
     },
+    rateLimit: {
+      actionUnavailable: "Действие временно недоступно из-за большого количества запросов.",
+      title: "Слишком много запросов",
+      tryLaterOrSignIn: "Попробуйте позже или авторизуйтесь для увеличения лимитов.",
+    },
     header: {
       account: "Аккаунт",
       brand: "Короткие ссылки",
@@ -420,6 +425,11 @@ export const translations = {
       register: "Could not create the account.",
       sessionExpired: "Session expired. Please sign in again.",
       statsOwnerOnly: "Stats are available only to the link owner.",
+    },
+    rateLimit: {
+      actionUnavailable: "This action is temporarily unavailable because of too many requests.",
+      title: "Too many requests",
+      tryLaterOrSignIn: "Try again later or sign in to get higher limits.",
     },
     header: {
       account: "Account",

@@ -716,6 +716,27 @@ h3 {
   color: var(--info-text);
 }
 
+.rate-limit-notice {
+  align-items: center;
+  background: color-mix(in srgb, var(--accent-3) 16%, var(--card-solid));
+  border: 1px solid color-mix(in srgb, var(--accent-3) 34%, var(--border));
+  border-radius: 12px;
+  color: var(--text);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.rate-limit-notice strong {
+  color: var(--text-strong);
+}
+
+.rate-limit-notice p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
 .feature-grid,
 .cards-grid,
 .stats-grid {
@@ -1548,6 +1569,11 @@ h3 {
   }
 
   .security-sessions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rate-limit-notice {
     align-items: stretch;
     flex-direction: column;
   }

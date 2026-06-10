@@ -21,6 +21,8 @@ type RequestOptions = {
   query?: Record<string, string | number | boolean | null | undefined>;
 };
 
+const fallbackRetryAfterSeconds = 30;
+
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
   const url = new URL(`${apiV1Url}${path}`);
 
@@ -52,6 +54,35 @@ async function readErrorMessage(response: Response): Promise<string> {
   }
 }
 
+function getRetryAfterSeconds(response: Response): number {
+  const retryAfter = response.headers.get("Retry-After");
+
+  if (!retryAfter) {
+    return fallbackRetryAfterSeconds;
+  }
+
+  const retryAfterNumber = Number(retryAfter);
+  if (Number.isFinite(retryAfterNumber) && retryAfterNumber > 0) {
+    return Math.ceil(retryAfterNumber);
+  }
+
+  const retryAfterDate = Date.parse(retryAfter);
+  if (Number.isNaN(retryAfterDate)) {
+    return fallbackRetryAfterSeconds;
+  }
+
+  return Math.max(1, Math.ceil((retryAfterDate - Date.now()) / 1000));
+}
+
+function createRateLimitError(response: Response) {
+  const retryAfterSeconds = getRetryAfterSeconds(response);
+
+  return new ApiError(response.status, "rate_limit", "rate_limit", {
+    retryAfterSeconds,
+    retryAt: Date.now() + retryAfterSeconds * 1000,
+  });
+}
+
 async function refreshTokens(refreshToken: string): Promise<TokenSchema> {
   const response = await fetch(buildUrl("/auth/token/refresh"), {
     method: "POST",
@@ -69,7 +100,7 @@ async function refreshTokens(refreshToken: string): Promise<TokenSchema> {
     }
 
     if (response.status === 429) {
-      throw new ApiError(response.status, "rate_limit", "rate_limit");
+      throw createRateLimitError(response);
     }
 
     throw new ApiError(response.status, message);
@@ -153,7 +184,7 @@ async function request<T>(
     }
 
     if (response.status === 429) {
-      throw new ApiError(response.status, "rate_limit", "rate_limit");
+      throw createRateLimitError(response);
     }
 
     throw new ApiError(response.status, message);
@@ -246,7 +277,7 @@ export const api = {
         const message = await readErrorMessage(response);
 
         if (response.status === 429) {
-          throw new ApiError(response.status, "rate_limit", "rate_limit");
+          throw createRateLimitError(response);
         }
 
         throw new ApiError(response.status, message);

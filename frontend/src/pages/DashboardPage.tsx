@@ -11,6 +11,8 @@ import LinkForm from "../components/LinkForm";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import Pagination from "../components/Pagination";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
@@ -32,9 +34,11 @@ export default function DashboardPage() {
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [deletingLink, setDeletingLink] = useState<LinkShortSchema | null>(null);
   const [editingLink, setEditingLink] = useState<LinkShortSchema | null>(null);
+  const rateLimit = useRateLimitCooldown();
 
   async function loadLinks(page = currentPage) {
     setError("");
+    rateLimit.resetCooldown();
     setIsLoading(true);
 
     try {
@@ -42,6 +46,10 @@ export default function DashboardPage() {
       setLinks(response.items);
       setTotal(response.total);
     } catch (err) {
+      if (rateLimit.startCooldown(err)) {
+        return;
+      }
+
       setError(getApiErrorMessage(err, "errors.loadLinksPage", t));
     } finally {
       setIsLoading(false);
@@ -130,6 +138,9 @@ export default function DashboardPage() {
 
       {copyMessage && <Message type="success">{copyMessage}</Message>}
       {successMessage && <Message type="success">{successMessage}</Message>}
+      {rateLimit.hasRateLimit && (
+        <RateLimitNotice />
+      )}
       {error && <Message type="error">{error}</Message>}
 
       {isLoading && links.length === 0 ? (

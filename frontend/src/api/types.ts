@@ -3,12 +3,21 @@ export type ApiErrorCode = "unauthorized" | "rate_limit" | "api_error";
 export class ApiError extends Error {
   status: number;
   code: ApiErrorCode;
+  retryAfterSeconds?: number;
+  retryAt?: number;
 
-  constructor(status: number, message: string, code: ApiErrorCode = "api_error") {
+  constructor(
+    status: number,
+    message: string,
+    code: ApiErrorCode = "api_error",
+    options: { retryAfterSeconds?: number; retryAt?: number } = {},
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.retryAfterSeconds = options.retryAfterSeconds;
+    this.retryAt = options.retryAt;
   }
 }
 

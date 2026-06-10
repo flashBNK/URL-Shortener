@@ -9,6 +9,8 @@ import LinkForm from "../components/LinkForm";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import Pagination from "../components/Pagination";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
@@ -28,6 +30,7 @@ export default function PublicLinksPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [allLinksForSearch, setAllLinksForSearch] = useState<LinkShortSchema[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const rateLimit = useRateLimitCooldown();
   const authenticated = isAuthenticated();
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const isSearching = Boolean(normalizedSearchQuery);
@@ -44,6 +47,7 @@ export default function PublicLinksPage() {
 
   async function loadPublic(page = currentPage) {
     setError("");
+    rateLimit.resetCooldown();
     setIsLoading(true);
 
     try {
@@ -54,9 +58,47 @@ export default function PublicLinksPage() {
         setAllLinksForSearch([]);
       }
     } catch (err) {
+      if (rateLimit.startCooldown(err)) {
+        return;
+      }
+
       setError(getApiErrorMessage(err, "errors.loadLinksPage", t));
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadAllPublicLinksForSearch() {
+    if (!isSearching) {
+      setAllLinksForSearch([]);
+      setIsSearchLoading(false);
+      return;
+    }
+
+    setError("");
+    rateLimit.resetCooldown();
+    setIsSearchLoading(true);
+
+    try {
+      const firstResponse = await api.getPublicLinks(SEARCH_BATCH_LIMIT, 0);
+      const nextLinks = [...firstResponse.items];
+
+      for (let offset = firstResponse.items.length; offset < firstResponse.total; offset += SEARCH_BATCH_LIMIT) {
+        const response = await api.getPublicLinks(SEARCH_BATCH_LIMIT, offset);
+        nextLinks.push(...response.items);
+      }
+
+      setAllLinksForSearch(nextLinks);
+      setTotal(firstResponse.total);
+    } catch (err) {
+      setAllLinksForSearch([]);
+      if (rateLimit.startCooldown(err)) {
+        return;
+      }
+
+      setError(getApiErrorMessage(err, "errors.loadPublicLinks", t));
+    } finally {
+      setIsSearchLoading(false);
     }
   }
 
@@ -65,35 +107,6 @@ export default function PublicLinksPage() {
   }, [currentPage]);
 
   useEffect(() => {
-    async function loadAllPublicLinksForSearch() {
-      if (!isSearching) {
-        setAllLinksForSearch([]);
-        setIsSearchLoading(false);
-        return;
-      }
-
-      setError("");
-      setIsSearchLoading(true);
-
-      try {
-        const firstResponse = await api.getPublicLinks(SEARCH_BATCH_LIMIT, 0);
-        const nextLinks = [...firstResponse.items];
-
-        for (let offset = firstResponse.items.length; offset < firstResponse.total; offset += SEARCH_BATCH_LIMIT) {
-          const response = await api.getPublicLinks(SEARCH_BATCH_LIMIT, offset);
-          nextLinks.push(...response.items);
-        }
-
-        setAllLinksForSearch(nextLinks);
-        setTotal(firstResponse.total);
-      } catch (err) {
-        setAllLinksForSearch([]);
-        setError(getApiErrorMessage(err, "errors.loadPublicLinks", t));
-      } finally {
-        setIsSearchLoading(false);
-      }
-    }
-
     void loadAllPublicLinksForSearch();
   }, [isSearching, t]);
 
@@ -123,7 +136,6 @@ export default function PublicLinksPage() {
 
     void loadPublic(1);
   }
-
   return (
     <section className="stack-xl">
       <div className="dashboard-hero public-hero">
@@ -161,6 +173,9 @@ export default function PublicLinksPage() {
 
       {copyMessage && <Message type="success">{copyMessage}</Message>}
       {successMessage && <Message type="success">{successMessage}</Message>}
+      {rateLimit.hasRateLimit && (
+        <RateLimitNotice />
+      )}
       {error && <Message type="error">{error}</Message>}
 
       <section className="public-list-panel">

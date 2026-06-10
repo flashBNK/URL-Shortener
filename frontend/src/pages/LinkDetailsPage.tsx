@@ -15,8 +15,10 @@ import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
 import Pagination from "../components/Pagination";
+import RateLimitNotice from "../components/RateLimitNotice";
 import StatsCards from "../components/StatsCards";
 import { isAuthenticated } from "../auth/tokenStore";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
 import { getApiErrorMessage } from "../utils/apiErrors";
@@ -44,45 +46,96 @@ export default function LinkDetailsPage() {
   const [isClicksLoading, setIsClicksLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const detailsRateLimit = useRateLimitCooldown();
+  const statsRateLimit = useRateLimitCooldown();
+  const clicksRateLimit = useRateLimitCooldown();
 
-  useEffect(() => {
-    async function loadDetails() {
-      setError("");
-      setStatsError(false);
-      setIsLoading(true);
-      setLink(null);
-      setStats(null);
-      setCurrentUser(null);
+  async function loadDetails() {
+    setError("");
+    setStatsError(false);
+    detailsRateLimit.resetCooldown();
+    statsRateLimit.resetCooldown();
+    setIsLoading(true);
+    setLink(null);
+    setStats(null);
+    setCurrentUser(null);
 
-      try {
-        const linkResponse = await api.getLink(shortUrl);
-        setLink(linkResponse);
+    try {
+      const linkResponse = await api.getLink(shortUrl);
+      setLink(linkResponse);
 
-        if (linkResponse.user_id === null) {
-          setIsLoading(false);
-          return;
-        }
-      } catch (err) {
-        setError(getApiErrorMessage(err, "errors.loadLink", t));
+      if (linkResponse.user_id === null) {
+        setIsLoading(false);
+        return;
+      }
+    } catch (err) {
+      if (detailsRateLimit.startCooldown(err)) {
         setIsLoading(false);
         return;
       }
 
-      try {
-        const [statsResponse, userResponse] = await Promise.all([
-          api.getStats(shortUrl),
-          isAuthenticated() ? api.getMe().catch(() => null) : Promise.resolve(null),
-        ]);
-        setStats(statsResponse);
-        setCurrentUser(userResponse);
-      } catch {
-        setStats(null);
-        setStatsError(true);
-      } finally {
-        setIsLoading(false);
-      }
+      setError(getApiErrorMessage(err, "errors.loadLink", t));
+      setIsLoading(false);
+      return;
     }
 
+    try {
+      const [statsResponse, userResponse] = await Promise.all([
+        api.getStats(shortUrl),
+        isAuthenticated() ? api.getMe().catch(() => null) : Promise.resolve(null),
+      ]);
+      setStats(statsResponse);
+      setCurrentUser(userResponse);
+    } catch (err) {
+      setStats(null);
+      if (!statsRateLimit.startCooldown(err)) {
+        setStatsError(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function loadClicks() {
+    if (!shortUrl || !link) {
+      return;
+    }
+
+    if (link?.user_id === null) {
+      setClicks(null);
+      setClicksError("");
+      setIsClicksLoading(false);
+      return;
+    }
+
+    setClicksError("");
+    clicksRateLimit.resetCooldown();
+    setIsClicksLoading(true);
+
+    try {
+      const response = await api.getClicks(
+        shortUrl,
+        CLICKS_PAGE_LIMIT,
+        (currentClicksPage - 1) * CLICKS_PAGE_LIMIT,
+      );
+
+      if (response.items.length === 0 && response.total > 0 && currentClicksPage > 1) {
+        handleClicksPageChange(currentClicksPage - 1);
+        return;
+      }
+
+      setClicks(response);
+    } catch (err) {
+      setClicks(null);
+      if (!clicksRateLimit.startCooldown(err)) {
+        setClicksError(getClickHistoryErrorMessage(err, t));
+      }
+    } finally {
+      setIsClicksLoading(false);
+    }
+  }
+
+  useEffect(() => {
     if (!shortUrl) {
       return;
     }
@@ -91,44 +144,16 @@ export default function LinkDetailsPage() {
   }, [shortUrl, t]);
 
   useEffect(() => {
-    async function loadClicks() {
-      if (!shortUrl || !link) {
-        return;
-      }
-
-      if (link?.user_id === null) {
-        setClicks(null);
-        setClicksError("");
-        setIsClicksLoading(false);
-        return;
-      }
-
-      setClicksError("");
-      setIsClicksLoading(true);
-
-      try {
-        const response = await api.getClicks(
-          shortUrl,
-          CLICKS_PAGE_LIMIT,
-          (currentClicksPage - 1) * CLICKS_PAGE_LIMIT,
-        );
-
-        if (response.items.length === 0 && response.total > 0 && currentClicksPage > 1) {
-          handleClicksPageChange(currentClicksPage - 1);
-          return;
-        }
-
-        setClicks(response);
-      } catch (err) {
-        setClicks(null);
-        setClicksError(getClickHistoryErrorMessage(err, t));
-      } finally {
-        setIsClicksLoading(false);
-      }
-    }
-
     void loadClicks();
   }, [shortUrl, currentClicksPage, link?.user_id, t]);
+
+  if (detailsRateLimit.hasRateLimit && !link) {
+    return (
+      <section className="narrow-page">
+        <RateLimitNotice />
+      </section>
+    );
+  }
 
   function handleClicksPageChange(page: number) {
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -237,6 +262,8 @@ export default function LinkDetailsPage() {
 
       {link.user_id === null ? (
         <EmptyState description={t("charts.publicChartsEmpty")} title={t("charts.publicChartsEmptyTitle")} />
+      ) : statsRateLimit.hasRateLimit ? (
+        <RateLimitNotice />
       ) : (
         <Charts stats={stats} />
       )}
@@ -263,6 +290,9 @@ export default function LinkDetailsPage() {
           <span className="muted">{t("details.clicksTotal", { count: clicks?.total ?? 0 })}</span>
         </div>
 
+        {clicksRateLimit.hasRateLimit && (
+          <RateLimitNotice />
+        )}
         {clicksError && <Message type="error">{clicksError}</Message>}
 
         {link.user_id === null ? (
@@ -270,7 +300,7 @@ export default function LinkDetailsPage() {
             description={t("details.publicClickHistoryEmpty")}
             title={t("details.publicClickHistoryEmptyTitle")}
           />
-        ) : !clicksError && isClicksLoading && !clicks ? (
+        ) : clicksRateLimit.hasRateLimit ? null : !clicksError && isClicksLoading && !clicks ? (
           <LoadingState label={t("details.clickHistoryLoading")} />
         ) : !clicksError && clicks?.items.length ? (
           <>

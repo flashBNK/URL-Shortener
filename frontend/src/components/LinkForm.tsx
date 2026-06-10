@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { api, publicBaseUrl } from "../api/client";
 import type { LinkSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getCreateLinkError } from "../utils/apiErrors";
 import { validateCreateLinkUrl, validateOptionalAlias } from "../utils/linkValidation";
@@ -24,6 +26,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
   const [touchedFields, setTouchedFields] = useState({ url: false, customAlias: false });
   const [copyMessage, setCopyMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const rateLimit = useRateLimitCooldown();
 
   const authenticated = isAuthenticated();
   const showVisibilitySwitch = mode === "smart" && authenticated;
@@ -36,6 +39,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
     fieldErrors.customAlias ||
     (aliasClientErrorKey && (touchedFields.customAlias || customAlias) ? t(aliasClientErrorKey) : "");
   const hasClientErrors = Boolean(urlClientErrorKey || aliasClientErrorKey);
+  const isSubmitDisabled = isSubmitting || hasClientErrors;
 
   function clearFieldError(field: "url" | "customAlias") {
     setFieldErrors((currentErrors) => ({ ...currentErrors, [field]: "", form: "" }));
@@ -54,6 +58,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
 
     setTouchedFields({ url: true, customAlias: true });
     setFieldErrors({ url: "", customAlias: "", form: "" });
+    rateLimit.resetCooldown();
     setCreatedLink(null);
     setCopyMessage("");
 
@@ -76,6 +81,10 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
       setCreatedLink(link);
       onCreated?.(link);
     } catch (err) {
+      if (rateLimit.startCooldown(err)) {
+        return;
+      }
+
       const createError = getCreateLinkError(err, t);
       setFieldErrors((currentErrors) => ({ ...currentErrors, [createError.field]: createError.message }));
     } finally {
@@ -138,7 +147,7 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
               {urlError || t("linkForm.helperNoScheme")}
             </small>
           </label>
-          <button disabled={isSubmitting || hasClientErrors} type="submit">
+          <button disabled={isSubmitDisabled} type="submit">
             {isSubmitting ? t("linkForm.shorteningButton") : t("linkForm.shorten")}
           </button>
         </div>
@@ -165,6 +174,9 @@ export default function LinkForm({ mode = "anonymous", onCreated }: LinkFormProp
         </div>
 
         {isSubmitting && <Message type="info">{t("linkForm.shortening")}</Message>}
+        {rateLimit.hasRateLimit && (
+          <RateLimitNotice />
+        )}
         {fieldErrors.form && <Message type="error">{fieldErrors.form}</Message>}
       </form>
 

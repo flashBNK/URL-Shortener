@@ -5,6 +5,8 @@ import { ApiError, type UserSchema } from "../api/types";
 import { clearTokens, isAuthenticated } from "../auth/tokenStore";
 import LoadingState from "../components/LoadingState";
 import Message from "../components/Message";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
 import { formatDate } from "../utils/formatters";
@@ -33,6 +35,10 @@ export default function AccountPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRevokeOpen, setIsRevokeOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
+  const profileRateLimit = useRateLimitCooldown();
+  const passwordRateLimit = useRateLimitCooldown();
+  const deleteRateLimit = useRateLimitCooldown();
+  const revokeRateLimit = useRateLimitCooldown();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -72,6 +78,7 @@ export default function AccountPage() {
 
     setMessage("");
     setProfileError("");
+    profileRateLimit.resetCooldown();
     setIsSavingProfile(true);
 
     try {
@@ -85,6 +92,10 @@ export default function AccountPage() {
       setMessage(t("account.changesSaved"));
       window.dispatchEvent(new CustomEvent("account:user-updated", { detail: updatedUser }));
     } catch (err) {
+      if (profileRateLimit.startCooldown(err)) {
+        return;
+      }
+
       setProfileError(getAccountErrorMessage(err, "account.errorUpdate", t));
     } finally {
       setIsSavingProfile(false);
@@ -95,6 +106,7 @@ export default function AccountPage() {
     event.preventDefault();
     setMessage("");
     setPasswordError("");
+    passwordRateLimit.resetCooldown();
 
     if (!currentPassword || !newPassword || !repeatPassword) {
       setPasswordError(t("account.errorPasswordFields"));
@@ -118,6 +130,10 @@ export default function AccountPage() {
       setRepeatPassword("");
       setMessage(t("account.passwordChanged"));
     } catch (err) {
+      if (passwordRateLimit.startCooldown(err)) {
+        return;
+      }
+
       setPasswordError(getAccountErrorMessage(err, "account.errorPasswordChange", t));
     } finally {
       setIsChangingPassword(false);
@@ -126,6 +142,7 @@ export default function AccountPage() {
 
   async function handleDeleteAccount() {
     setDeleteError("");
+    deleteRateLimit.resetCooldown();
 
     if (!deletePassword) {
       setDeleteError(t("account.errorCurrentPasswordRequired"));
@@ -139,6 +156,11 @@ export default function AccountPage() {
       clearTokens();
       navigate("/", { state: { message: t("account.accountDeleted") } });
     } catch (err) {
+      if (deleteRateLimit.startCooldown(err)) {
+        setIsDeleting(false);
+        return;
+      }
+
       setDeleteError(getAccountErrorMessage(err, "account.errorDelete", t));
       setIsDeleting(false);
     }
@@ -146,6 +168,7 @@ export default function AccountPage() {
 
   async function handleRevokeAllTokens() {
     setRevokeError("");
+    revokeRateLimit.resetCooldown();
     setIsRevoking(true);
 
     try {
@@ -162,6 +185,10 @@ export default function AccountPage() {
       if (err instanceof ApiError && err.status === 404) {
         clearTokens();
         navigate("/login", { state: { message: t("account.sessionsNotFound") } });
+        return;
+      }
+
+      if (revokeRateLimit.startCooldown(err)) {
         return;
       }
 
@@ -225,6 +252,9 @@ export default function AccountPage() {
             {t("account.email")}
             <input onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
           </label>
+          {profileRateLimit.hasRateLimit && (
+            <RateLimitNotice />
+          )}
           {profileError && <Message type="error">{profileError}</Message>}
           <button disabled={!profileChanged || isSavingProfile} type="submit">
             {isSavingProfile ? t("account.saving") : t("account.saveChanges")}
@@ -272,6 +302,9 @@ export default function AccountPage() {
             />
           </label>
         </div>
+        {passwordRateLimit.hasRateLimit && (
+          <RateLimitNotice />
+        )}
         {passwordError && <Message type="error">{passwordError}</Message>}
         <div className="actions-row">
           <button disabled={isChangingPassword} type="submit">
@@ -335,12 +368,20 @@ export default function AccountPage() {
                 value={deletePassword}
               />
             </label>
+            {deleteRateLimit.hasRateLimit && (
+              <RateLimitNotice />
+            )}
             {deleteError && <Message type="error">{deleteError}</Message>}
             <div className="modal-actions">
               <button className="ghost-button" disabled={isDeleting} onClick={() => setIsDeleteOpen(false)} type="button">
                 {t("account.cancel")}
               </button>
-              <button className="danger-button" disabled={isDeleting} onClick={() => void handleDeleteAccount()} type="button">
+              <button
+                className="danger-button"
+                disabled={isDeleting}
+                onClick={() => void handleDeleteAccount()}
+                type="button"
+              >
                 {isDeleting ? t("account.deletingAccount") : t("account.deleteAccount")}
               </button>
             </div>
@@ -367,6 +408,9 @@ export default function AccountPage() {
               </button>
             </div>
             <p className="delete-warning">{t("account.signOutAllModalDescription")}</p>
+            {revokeRateLimit.hasRateLimit && (
+              <RateLimitNotice />
+            )}
             {revokeError && <Message type="error">{revokeError}</Message>}
             <div className="modal-actions">
               <button

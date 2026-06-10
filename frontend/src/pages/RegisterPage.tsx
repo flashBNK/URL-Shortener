@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import Message from "../components/Message";
+import RateLimitNotice from "../components/RateLimitNotice";
+import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
 
@@ -13,16 +15,26 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const rateLimit = useRateLimitCooldown();
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    await submitRegister();
+  }
+
+  async function submitRegister() {
     setError("");
+    rateLimit.resetCooldown();
     setIsSubmitting(true);
 
     try {
       await api.register({ username, email, password });
       navigate("/login", { state: { message: t("auth.registerSuccess") } });
     } catch (err) {
+      if (rateLimit.startCooldown(err)) {
+        return;
+      }
+
       setError(getApiErrorMessage(err, "errors.register", t));
     } finally {
       setIsSubmitting(false);
@@ -58,6 +70,9 @@ export default function RegisterPage() {
         <button disabled={isSubmitting} type="submit">
           {isSubmitting ? t("auth.registerSubmitting") : t("auth.registerSubmit")}
         </button>
+        {rateLimit.hasRateLimit && (
+          <RateLimitNotice />
+        )}
         {error && <Message type="error">{error}</Message>}
         <p className="muted">
           {t("auth.withAccount")} <Link to="/login">{t("auth.signInLink")}</Link>.
