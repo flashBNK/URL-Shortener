@@ -26,7 +26,7 @@ export default function LinkCard({
   const { language, t } = useI18n();
   const shortLink = `${publicBaseUrl}/${link.short_url}`;
   const expiresAt = link.expires_at ? formatDate(link.expires_at, language) : "";
-  const isExpired = Boolean(isPublic && link.expires_at && new Date(link.expires_at).getTime() <= Date.now());
+  const isExpired = Boolean(link.expires_at && new Date(link.expires_at).getTime() <= Date.now());
 
   return (
     <article className="link-card">

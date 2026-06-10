@@ -109,7 +109,8 @@ a:hover {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -157,7 +158,8 @@ button:disabled {
   transform: none;
 }
 
-input {
+input,
+select {
   background: var(--card-solid);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -175,10 +177,26 @@ input::placeholder {
   color: color-mix(in srgb, var(--muted) 76%, transparent);
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px var(--focus);
   outline: 0;
+}
+
+select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    6px 6px,
+    6px 6px;
+  padding-right: 38px;
 }
 
 input.field-error {
@@ -777,6 +795,43 @@ h3 {
 .auth-copy p {
   color: var(--muted);
   line-height: 1.65;
+}
+
+.dashboard-filter-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.dashboard-filter-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(160px, 1fr));
+}
+
+.dashboard-filter-grid label {
+  color: var(--text);
+  display: grid;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.dashboard-filter-grid span,
+.dashboard-filter-footer {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.dashboard-filter-footer {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
 }
 
 .cta-band,
@@ -1718,8 +1773,14 @@ h3 {
   .url-input-row,
   .alias-row,
   .check-form,
+  .dashboard-filter-grid,
   .account-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-filter-footer {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .check-result-heading {

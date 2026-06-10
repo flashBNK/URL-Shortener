@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { LinkSchema, LinkShortSchema } from "../api/types";
 import { isAuthenticated } from "../auth/tokenStore";
+import DashboardFilters from "../components/DashboardFilters";
 import EmptyState from "../components/EmptyState";
 import LinkCard from "../components/LinkCard";
 import LinkForm from "../components/LinkForm";
@@ -14,9 +15,15 @@ import { usePageTitle } from "../hooks/usePageTitle";
 import { useRateLimitCooldown } from "../hooks/useRateLimitCooldown";
 import { useI18n } from "../i18n/I18nProvider";
 import { getApiErrorMessage } from "../utils/apiErrors";
+import {
+  defaultDashboardFilters,
+  getFilteredDashboardLinks,
+  isDashboardFiltersDefault,
+  type DashboardFiltersState,
+} from "../utils/linkFilters";
 
 const PAGE_LIMIT = 10;
-const SEARCH_BATCH_LIMIT = 100;
+const FILTER_BATCH_LIMIT = 100;
 
 export default function PublicLinksPage() {
   const { t } = useI18n();
@@ -28,24 +35,21 @@ export default function PublicLinksPage() {
   const [error, setError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<DashboardFiltersState>(defaultDashboardFilters);
   const [isLoading, setIsLoading] = useState(true);
-  const [allLinksForSearch, setAllLinksForSearch] = useState<LinkShortSchema[]>([]);
-  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [allLinks, setAllLinks] = useState<LinkShortSchema[]>([]);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const rateLimit = useRateLimitCooldown();
   const authenticated = isAuthenticated();
-  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
-  const isSearching = Boolean(normalizedSearchQuery);
-  const searchSourceLinks = isSearching ? allLinksForSearch : links;
-  const filteredLinks = isSearching
-    ? searchSourceLinks.filter(
-        (link) => link.short_url.toLowerCase().includes(normalizedSearchQuery) || link.url.toLowerCase().includes(normalizedSearchQuery),
-      )
-    : links;
-  const visibleLinks = isSearching
+  const hasActiveFilters = !isDashboardFiltersDefault(filters);
+  const filterSourceLinks = hasActiveFilters ? allLinks : links;
+  const filteredLinks = getFilteredDashboardLinks(filterSourceLinks, filters);
+  const visibleLinks = hasActiveFilters
     ? filteredLinks.slice((currentPage - 1) * PAGE_LIMIT, currentPage * PAGE_LIMIT)
     : filteredLinks;
-  const visibleTotal = isSearching ? filteredLinks.length : total;
+  const visibleTotal = hasActiveFilters ? filteredLinks.length : total;
+  const sourceCount = hasActiveFilters ? allLinks.length : links.length;
+  const hasLoadedLinks = hasActiveFilters ? total > 0 || allLinks.length > 0 || isFilterLoading : links.length > 0;
 
   async function loadPublic(page = currentPage) {
     setError("");
@@ -56,9 +60,6 @@ export default function PublicLinksPage() {
       const response = await api.getPublicLinks(PAGE_LIMIT, (page - 1) * PAGE_LIMIT);
       setLinks(response.items);
       setTotal(response.total);
-      if (!isSearching) {
-        setAllLinksForSearch([]);
-      }
     } catch (err) {
       if (rateLimit.startCooldown(err)) {
         return;
@@ -70,47 +71,43 @@ export default function PublicLinksPage() {
     }
   }
 
-  async function loadAllPublicLinksForSearch() {
-    if (!isSearching) {
-      setAllLinksForSearch([]);
-      setIsSearchLoading(false);
-      return;
-    }
-
+  async function loadAllPublicLinksForFilters() {
     setError("");
     rateLimit.resetCooldown();
-    setIsSearchLoading(true);
+    setIsFilterLoading(true);
 
     try {
-      const firstResponse = await api.getPublicLinks(SEARCH_BATCH_LIMIT, 0);
+      const firstResponse = await api.getPublicLinks(FILTER_BATCH_LIMIT, 0);
       const nextLinks = [...firstResponse.items];
 
-      for (let offset = firstResponse.items.length; offset < firstResponse.total; offset += SEARCH_BATCH_LIMIT) {
-        const response = await api.getPublicLinks(SEARCH_BATCH_LIMIT, offset);
+      for (let offset = firstResponse.items.length; offset < firstResponse.total; offset += FILTER_BATCH_LIMIT) {
+        const response = await api.getPublicLinks(FILTER_BATCH_LIMIT, offset);
         nextLinks.push(...response.items);
       }
 
-      setAllLinksForSearch(nextLinks);
+      setAllLinks(nextLinks);
       setTotal(firstResponse.total);
     } catch (err) {
-      setAllLinksForSearch([]);
       if (rateLimit.startCooldown(err)) {
         return;
       }
 
       setError(getApiErrorMessage(err, "errors.loadPublicLinks", t));
     } finally {
-      setIsSearchLoading(false);
+      setIsFilterLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadPublic(currentPage);
-  }, [currentPage]);
+    if (hasActiveFilters) {
+      if (allLinks.length === 0 || (total > 0 && allLinks.length !== total)) {
+        void loadAllPublicLinksForFilters();
+      }
+      return;
+    }
 
-  useEffect(() => {
-    void loadAllPublicLinksForSearch();
-  }, [isSearching, t]);
+    void loadPublic(currentPage);
+  }, [currentPage, hasActiveFilters, t]);
 
   function handlePageChange(page: number) {
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -122,6 +119,22 @@ export default function PublicLinksPage() {
     setSearchParams(nextSearchParams);
   }
 
+  function handleFiltersChange(nextFilters: DashboardFiltersState) {
+    setFilters(nextFilters);
+
+    if (currentPage !== 1) {
+      handlePageChange(1);
+    }
+  }
+
+  function resetFilters() {
+    setFilters(defaultDashboardFilters);
+
+    if (currentPage !== 1) {
+      handlePageChange(1);
+    }
+  }
+
   async function copyLink(value: string) {
     await navigator.clipboard.writeText(value);
     setCopyMessage(t("common.copied"));
@@ -129,7 +142,8 @@ export default function PublicLinksPage() {
 
   function handlePublicCreated(_link: LinkSchema) {
     setSuccessMessage(t("publicLinks.created"));
-    setSearchQuery("");
+    setFilters(defaultDashboardFilters);
+    setAllLinks([]);
 
     if (currentPage !== 1) {
       handlePageChange(1);
@@ -180,28 +194,6 @@ export default function PublicLinksPage() {
       )}
       {error && <Message type="error">{error}</Message>}
 
-      <section className="public-list-panel">
-        <div className="public-toolbar">
-          <label>
-            <span>{isSearching ? t("publicLinks.searchLabelAll") : t("publicLinks.searchLabel")}</span>
-            <input
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
-                handlePageChange(1);
-              }}
-              placeholder={t("publicLinks.searchPlaceholder")}
-              type="search"
-              value={searchQuery}
-            />
-          </label>
-          {searchQuery && (
-            <button className="secondary-button" onClick={() => setSearchQuery("")} type="button">
-              {t("common.clear")}
-            </button>
-          )}
-        </div>
-      </section>
-
       {isLoading && links.length === 0 ? (
         <LoadingState label={t("publicLinks.loading")} />
       ) : error && links.length === 0 ? (
@@ -214,39 +206,50 @@ export default function PublicLinksPage() {
           description={t("errors.loadPublicLinks")}
           title={t("errors.loadLinksPage")}
         />
-      ) : links.length && visibleLinks.length ? (
+      ) : hasLoadedLinks ? (
         <>
-          {(isLoading || isSearchLoading) && <div className="pagination-loading">{t("common.loading")}</div>}
-          <div className={isLoading || isSearchLoading ? "cards-grid cards-grid-loading" : "cards-grid"}>
-            {visibleLinks.map((link) => (
-              <LinkCard
-                key={link.short_url}
-                link={link}
-                isPublic
-                onCopy={copyLink}
-                showAnalytics={false}
-                showOriginal
-              />
-            ))}
-          </div>
+          <DashboardFilters
+            filters={filters}
+            foundCount={filteredLinks.length}
+            isGlobal={hasActiveFilters}
+            labels="publicFilters"
+            pageCount={sourceCount}
+            onChange={handleFiltersChange}
+            onReset={resetFilters}
+          />
+          {(isLoading || isFilterLoading) && <div className="pagination-loading">{t("common.loading")}</div>}
+          {visibleLinks.length ? (
+            <div className={isLoading || isFilterLoading ? "cards-grid cards-grid-loading" : "cards-grid"}>
+              {visibleLinks.map((link) => (
+                <LinkCard
+                  key={link.short_url}
+                  link={link}
+                  isPublic
+                  onCopy={copyLink}
+                  showAnalytics={false}
+                  showOriginal
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              action={
+                <button onClick={resetFilters} type="button">
+                  {t("publicFilters.resetFilters")}
+                </button>
+              }
+              description={t("publicFilters.emptyDescription")}
+              title={t("publicFilters.emptyTitle")}
+            />
+          )}
           <Pagination
             page={currentPage}
             limit={PAGE_LIMIT}
             total={visibleTotal}
-            isLoading={isLoading || isSearchLoading}
+            isLoading={isLoading || isFilterLoading}
             onPageChange={handlePageChange}
           />
         </>
-      ) : links.length ? (
-        <EmptyState
-          action={
-            <button onClick={() => setSearchQuery("")} type="button">
-              {t("common.clear")}
-            </button>
-          }
-          description={t("publicLinks.searchEmpty")}
-          title={t("publicLinks.searchEmpty")}
-        />
       ) : (
         <EmptyState
           action={
