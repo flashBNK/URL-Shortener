@@ -49,6 +49,17 @@ export default function HomePage() {
           {t("home.openFeed")}
         </Link>
       </section>
+
+      <section className="cta-band">
+        <div>
+          <p className="eyebrow">{t("checkLink.eyebrow")}</p>
+          <h2>{t("home.checkCtaTitle")}</h2>
+          <p>{t("home.checkCtaDescription")}</p>
+        </div>
+        <Link className="secondary-button" to="/check">
+          {t("home.checkCtaButton")}
+        </Link>
+      </section>
     </div>
   );
 }

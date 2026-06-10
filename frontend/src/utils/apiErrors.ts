@@ -22,6 +22,10 @@ export function getApiErrorMessage(error: unknown, fallback: TranslationKey, t: 
     return t("errors.rateLimit");
   }
 
+  if (error.status === 403) {
+    return t("errors.forbidden");
+  }
+
   return error.message || t(fallback);
 }
 

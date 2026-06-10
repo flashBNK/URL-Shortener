@@ -63,11 +63,12 @@ export default function Header() {
     <header className="site-header">
       <NavLink className="logo" to="/">
         <span className="logo-mark">u</span>
-        <span>Shortener</span>
+        <span>{t("header.brand")}</span>
       </NavLink>
 
       <nav className="main-nav">
         <NavLink to="/">{t("header.home")}</NavLink>
+        <NavLink to="/check">{t("header.checkLink")}</NavLink>
         <NavLink to="/public">{t("header.publicLinks")}</NavLink>
         <NavLink to="/dashboard">{t("header.dashboard")}</NavLink>
         {authenticated && <NavLink to="/account">{t("header.account")}</NavLink>}

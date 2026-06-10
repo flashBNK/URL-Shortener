@@ -493,6 +493,75 @@ h3 {
   padding: 22px;
 }
 
+.check-hero {
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%),
+    var(--card);
+}
+
+.check-panel,
+.check-form {
+  display: grid;
+  gap: 16px;
+}
+
+.check-form {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.check-form label {
+  color: var(--text);
+  display: grid;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.check-form button {
+  min-width: 132px;
+}
+
+.check-result-card {
+  gap: 18px;
+}
+
+.check-result-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.check-result-heading h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.check-link-details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.check-link-details div {
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 4px;
+  padding-bottom: 12px;
+}
+
+.check-link-details dt {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.check-link-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .link-form-stack,
 .link-form,
 .auth-card {
@@ -1461,8 +1530,13 @@ h3 {
 
   .url-input-row,
   .alias-row,
+  .check-form,
   .account-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .check-result-heading {
+    flex-direction: column;
   }
 
   .cta-band,

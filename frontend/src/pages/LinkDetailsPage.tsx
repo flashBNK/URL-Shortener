@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, publicBaseUrl } from "../api/client";
 import {
+  ApiError,
   type GroupByCountryLinkSchema,
   type LinkSchema,
   type ListLinkClicksSchema,
@@ -17,6 +18,7 @@ import Pagination from "../components/Pagination";
 import StatsCards from "../components/StatsCards";
 import { isAuthenticated } from "../auth/tokenStore";
 import { useI18n } from "../i18n/I18nProvider";
+import type { TranslationKey } from "../i18n/translations";
 import { getApiErrorMessage } from "../utils/apiErrors";
 import { formatDateTime } from "../utils/formatters";
 import { summarizeUserAgent } from "../utils/userAgent";
@@ -55,6 +57,11 @@ export default function LinkDetailsPage() {
       try {
         const linkResponse = await api.getLink(shortUrl);
         setLink(linkResponse);
+
+        if (linkResponse.user_id === null) {
+          setIsLoading(false);
+          return;
+        }
       } catch (err) {
         setError(getApiErrorMessage(err, "errors.loadLink", t));
         setIsLoading(false);
@@ -85,7 +92,14 @@ export default function LinkDetailsPage() {
 
   useEffect(() => {
     async function loadClicks() {
-      if (!shortUrl) {
+      if (!shortUrl || !link) {
+        return;
+      }
+
+      if (link?.user_id === null) {
+        setClicks(null);
+        setClicksError("");
+        setIsClicksLoading(false);
         return;
       }
 
@@ -107,14 +121,14 @@ export default function LinkDetailsPage() {
         setClicks(response);
       } catch (err) {
         setClicks(null);
-        setClicksError(getApiErrorMessage(err, "errors.loadClickHistory", t));
+        setClicksError(getClickHistoryErrorMessage(err, t));
       } finally {
         setIsClicksLoading(false);
       }
     }
 
     void loadClicks();
-  }, [shortUrl, currentClicksPage, t]);
+  }, [shortUrl, currentClicksPage, link?.user_id, t]);
 
   function handleClicksPageChange(page: number) {
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -178,8 +192,14 @@ export default function LinkDetailsPage() {
   }
 
   const shortLink = `${publicBaseUrl}/${link.short_url}`;
-  const ownerName = currentUser && link.user_id === currentUser.id ? currentUser.username : null;
-  const canEdit = Boolean(ownerName);
+  const isOwnLink = Boolean(currentUser && link.user_id === currentUser.id);
+  const ownerName =
+    currentUser && link.user_id === currentUser.id
+      ? currentUser.username
+      : link.user_id
+        ? t("stats.personalOwner")
+        : null;
+  const canEdit = isOwnLink;
 
   return (
     <section className="stack-xl">
@@ -215,11 +235,13 @@ export default function LinkDetailsPage() {
 
       <StatsCards link={link} ownerName={ownerName} />
 
-      {statsError && <Message type="info">{t("errors.statsOwnerOnly")}</Message>}
+      {link.user_id === null ? (
+        <EmptyState description={t("charts.publicChartsEmpty")} title={t("charts.publicChartsEmptyTitle")} />
+      ) : (
+        <Charts stats={stats} />
+      )}
 
-      <Charts stats={stats} />
-
-      {canEdit && (
+      {isOwnLink && (
         <section className="danger-zone">
           <div>
             <p className="eyebrow">{t("deleteLink.dangerZone")}</p>
@@ -243,7 +265,12 @@ export default function LinkDetailsPage() {
 
         {clicksError && <Message type="error">{clicksError}</Message>}
 
-        {!clicksError && isClicksLoading && !clicks ? (
+        {link.user_id === null ? (
+          <EmptyState
+            description={t("details.publicClickHistoryEmpty")}
+            title={t("details.publicClickHistoryEmptyTitle")}
+          />
+        ) : !clicksError && isClicksLoading && !clicks ? (
           <LoadingState label={t("details.clickHistoryLoading")} />
         ) : !clicksError && clicks?.items.length ? (
           <>
@@ -312,4 +339,12 @@ export default function LinkDetailsPage() {
 function parsePage(value: string | null): number {
   const page = Number(value);
   return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+function getClickHistoryErrorMessage(error: unknown, t: (key: TranslationKey) => string) {
+  if (error instanceof ApiError && (error.status === 401 || error.status === 403 || error.code === "unauthorized")) {
+    return t("details.clickHistoryOwnerOnly");
+  }
+
+  return getApiErrorMessage(error, "errors.loadClickHistory", t);
 }
