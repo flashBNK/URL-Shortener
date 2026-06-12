@@ -58,15 +58,23 @@ export default function Charts({ stats }: ChartsProps) {
           <span>{byDate.length ? t("common.clicks") : t("common.noData")}</span>
         </div>
         {byDate.length ? (
-          <ResponsiveContainer height={260} width="100%">
-            <LineChart data={byDate}>
-              <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
-              <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
-              <Tooltip />
-              <Line dataKey="value" name={t("common.clicks")} stroke="var(--accent)" strokeWidth={3} type="monotone" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="chart-viewport chart-viewport-line">
+            <ResponsiveContainer height="100%" width="100%">
+              <LineChart data={byDate}>
+                <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
+                <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
+                <Tooltip />
+                <Line
+                  dataKey="value"
+                  name={t("common.clicks")}
+                  stroke="var(--accent)"
+                  strokeWidth={3}
+                  type="monotone"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
           <EmptyState description={t("charts.emptyDatesDescription")} title={t("common.noData")} />
         )}
@@ -78,16 +86,18 @@ export default function Charts({ stats }: ChartsProps) {
           <span>{byCountry.length ? t("common.total") : t("common.noData")}</span>
         </div>
         {byCountry.length ? (
-          <ResponsiveContainer height={250} width="100%">
-            <PieChart>
-              <Pie data={byCountry} dataKey="value" innerRadius={52} nameKey="name" outerRadius={82}>
-                {byCountry.map((entry, index) => (
-                  <Cell fill={colors[index % colors.length]} key={entry.name} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="chart-viewport">
+            <ResponsiveContainer height="100%" width="100%">
+              <PieChart>
+                <Pie data={byCountry} dataKey="value" innerRadius={52} nameKey="name" outerRadius={82}>
+                  {byCountry.map((entry, index) => (
+                    <Cell fill={colors[index % colors.length]} key={entry.name} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
           <EmptyState description={t("charts.emptyCountriesDescription")} title={t("charts.emptyCountriesTitle")} />
         )}
@@ -99,15 +109,17 @@ export default function Charts({ stats }: ChartsProps) {
           <span>{byDevice.length ? t("common.total") : t("common.noData")}</span>
         </div>
         {byDevice.length ? (
-          <ResponsiveContainer height={250} width="100%">
-            <BarChart data={byDevice}>
-              <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
-              <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="value" fill="var(--accent-2)" name={t("common.clicks")} radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-viewport">
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart data={byDevice}>
+                <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
+                <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fill: "var(--muted)", fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="value" fill="var(--accent-2)" name={t("common.clicks")} radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
           <EmptyState description={t("charts.emptyDevicesDescription")} title={t("common.noData")} />
         )}
