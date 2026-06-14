@@ -1,0 +1,85 @@
+name: url-shortener-prod
+
+services:
+  caddy:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL in .env.prod}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env.prod}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    networks:
+      - prod_net
+
+  backend:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY in .env.prod}
+      APP_SAFE_BROWSING_API_KEY: ${APP_SAFE_BROWSING_API_KEY:?Set APP_SAFE_BROWSING_API_KEY in .env.prod}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:?Set APP_FRONTEND_BASE_URL in .env.prod}
+      APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:?Set APP_CORS_ORIGINS in .env.prod}
+      DB_USER: ${DB_USER:?Set DB_USER in .env.prod}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.prod}
+      DB_NAME: ${DB_NAME:?Set DB_NAME in .env.prod}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - prod_net
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env.prod}
+      POSTGRES_USER: ${DB_USER:?Set DB_USER in .env.prod}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - prod_net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - prod_net
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  prod_net:
+    driver: bridge

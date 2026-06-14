@@ -24,6 +24,8 @@ tests/
 htmlcov/
 
 # Секреты — никогда не должны попадать в образ
+.env
+.env.*
 config/.env
 config/.env.test
 *.env

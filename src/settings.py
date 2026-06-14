@@ -19,8 +19,28 @@ class _AppSettings(BaseSettings):
     port: int = 8000
     debug: bool = False
     frontend_base_url: str = "http://localhost:5173"
+    cors_origins: str = ""
     secret_key: SecretStr           # берётся из APP_SECRET_KEY в .env
     safe_browsing_api_key: SecretStr  # берётся из APP_SAFE_BROWSING_API_KEY в .env
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        return env_settings, dotenv_settings, init_settings, file_secret_settings
+
+    def get_cors_origins(self) -> list[str]:
+        origins = [origin.strip().rstrip("/") for origin in self.cors_origins.split(",") if origin.strip()]
+        if origins:
+            return origins
+        if self.debug:
+            return ["*"]
+        return [self.frontend_base_url.rstrip("/")]
 
 
 class _DatabaseSettings(BaseSettings):

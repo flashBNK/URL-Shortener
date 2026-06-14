@@ -1,0 +1,56 @@
+# Caddy terminates HTTPS automatically for DOMAIN and serves the built SPA.
+# Unknown one-segment paths fall through to the FastAPI short-link endpoint.
+
+{$DOMAIN} {
+    encode zstd gzip
+    root * /srv
+
+    # JSON API.
+    handle /api/v1/* {
+        reverse_proxy backend:8000
+    }
+
+    # Keep FastAPI docs explicitly available in production.
+    handle /docs {
+        reverse_proxy backend:8000
+    }
+    handle /openapi.json {
+        reverse_proxy backend:8000
+    }
+    handle /redoc {
+        reverse_proxy backend:8000
+    }
+
+    # Existing frontend code fetches the legacy root /public API endpoint.
+    # Browser navigation to /public still goes to the SPA via Accept: text/html.
+    @legacy_public_api {
+        path /public
+        not {
+            header Accept *text/html*
+        }
+    }
+    handle @legacy_public_api {
+        reverse_proxy backend:8000
+    }
+
+    # Static files emitted by Vite.
+    handle /assets/* {
+        file_server
+    }
+    handle /favicon.ico {
+        file_server
+    }
+
+    # Explicit SPA routes. Do not send every unknown path to the frontend,
+    # because short links live at /{short_url}.
+    @frontend_routes path / /dashboard /dashboard/* /public /public/* /check /check/* /account /account/* /login /login/* /register /register/* /links /links/* /404 /404/*
+    handle @frontend_routes {
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Short links and other non-SPA paths go to FastAPI.
+    handle {
+        reverse_proxy backend:8000
+    }
+}

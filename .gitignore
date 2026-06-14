@@ -120,6 +120,7 @@ env.bak/
 venv.bak/
 *.env
 .env.*
+!.env.prod.example
 config/.env
 config/.env.*
 
