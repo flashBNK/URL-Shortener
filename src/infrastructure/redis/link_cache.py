@@ -1,8 +1,13 @@
 import json
 from datetime import datetime
 
+from redis.exceptions import RedisError
+
 from domain.link.models import LinkDTO
 from infrastructure.redis import client as redis_module
+from logger import get_logger
+
+log = get_logger("infrastructure.redis.link_cache")
 
 
 class LinkCache:
@@ -13,13 +18,23 @@ class LinkCache:
         return f"link:{short_url}"
 
     async def get(self, short_url: str) -> dict | None:
-        data = await redis_module.redis_client.client.get(self._key(short_url))
+        try:
+            data = await redis_module.redis_client.client.get(self._key(short_url))
+        except (RedisError, OSError) as exc:
+            log.warning("redis cache get failed", short_url=short_url, error=str(exc))
+            return None
+
         if not data:
             return None
-        parsed = json.loads(data)
 
-        if parsed.get("expires_at"):
-            parsed["expires_at"] = datetime.fromisoformat(parsed["expires_at"])
+        try:
+            parsed = json.loads(data)
+
+            if parsed.get("expires_at"):
+                parsed["expires_at"] = datetime.fromisoformat(parsed["expires_at"])
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            log.warning("redis cache payload invalid", short_url=short_url, error=str(exc))
+            return None
 
         return parsed
 
@@ -33,7 +48,13 @@ class LinkCache:
             "user_id": link.user_id,
             "expires_at": link.expires_at.isoformat() if link.expires_at else None
         })
-        await redis_module.redis_client.client.set(self._key(short_url), data, ex=self._ttl)
+        try:
+            await redis_module.redis_client.client.set(self._key(short_url), data, ex=self._ttl)
+        except (RedisError, OSError) as exc:
+            log.warning("redis cache set failed", short_url=short_url, error=str(exc))
 
     async def delete(self, short_url: str) -> None:
-        await redis_module.redis_client.client.delete(self._key(short_url))
+        try:
+            await redis_module.redis_client.client.delete(self._key(short_url))
+        except (RedisError, OSError) as exc:
+            log.warning("redis cache delete failed", short_url=short_url, error=str(exc))

@@ -28,6 +28,7 @@ from domain.token.exceptions import TokenNotFoundError
 from domain.user.exceptions import AccessDenied, UserNotFound
 from domain.user.models import UserDTO
 from limiter import get_anon_key, get_auth_key, limiter
+from settings import settings
 from usecases.link.create.abstract import AbstractCreateLinkUseCase
 from usecases.link.delete.abstract import AbstractDeleteLinkUseCase
 from usecases.link.find_by_short_url.abstract import AbstractFindByShortUrlLinkUseCase
@@ -104,7 +105,8 @@ async def redirect_link(
     except LinkIsNotActive:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     except LinkNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+        frontend_base_url = settings.app.frontend_base_url.rstrip("/")
+        return RedirectResponse(url=f"{frontend_base_url}/{short_url}", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
     except LinkIsExpires as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
 
@@ -185,7 +187,8 @@ async def update_link(
     dto = UpdateLinkDTO(
         short_url=payload.short_url,
         is_active=payload.is_active,
-        expires_at=payload.expires_at
+        expires_at=payload.expires_at,
+        expires_at_set="expires_at" in payload.model_fields_set,
     )
 
     try:

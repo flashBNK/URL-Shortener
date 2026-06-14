@@ -162,7 +162,7 @@ class PostgreSQLLinkRepository(AbstractLinkRepository):
 
         if dto.short_url is not None:
             link.short_url = dto.short_url
-        if dto.expires_at is not None:
+        if dto.expires_at_set:
             link.expires_at = dto.expires_at
         if dto.is_active is not None:
             link.is_active = dto.is_active
