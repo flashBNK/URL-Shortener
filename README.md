@@ -28,7 +28,7 @@ cp .env.prod.example .env.prod
 - `DB_PASSWORD`
 - `REDIS_URL`
 
-Для деплоя на одном домене держите эти значения согласованными:
+Для деплоя на основном домене держите эти значения согласованными:
 
 ```bash
 DOMAIN=example.com
@@ -36,6 +36,14 @@ APP_FRONTEND_BASE_URL=https://example.com
 APP_CORS_ORIGINS=https://example.com
 VITE_API_BASE_URL=https://example.com
 ```
+
+DNS для production домена должен указывать оба имени на IP VPS:
+
+- `A @ -> <VPS_IP>`
+- `A www -> <VPS_IP>`
+
+`www`-домен обслуживается Caddy отдельным TLS site block и постоянно редиректит на основной домен:
+`https://www.example.com/{path}` -> `https://example.com/{path}`.
 
 Запуск production stack:
 
@@ -71,6 +79,7 @@ docker compose -f build/docker-compose.prod.yml --env-file .env.prod run --rm ba
 
 Caddy routing:
 
+- `www.${DOMAIN}` постоянно редиректит на `https://${DOMAIN}{uri}`.
 - `/api/v1/*`, `/docs`, `/openapi.json`, `/redoc` идут в FastAPI `backend:8000`.
 - `/assets/*` и `/favicon.ico` отдаются как static files.
 - `/`, `/dashboard`, `/public`, `/check`, `/account`, `/login`, `/register`, `/links/*`, `/404` используют SPA fallback.
