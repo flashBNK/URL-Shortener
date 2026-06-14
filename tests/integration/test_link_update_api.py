@@ -76,6 +76,51 @@ async def test_update_link_success(client, session):
 
 
 @pytest.mark.asyncio
+async def test_update_link_reserved_short_url(client, session):
+    app.dependency_overrides.pop(get_current_user_optional, None)
+
+    user = User(
+        username="reservedupdate",
+        email="reservedupdate@example.com",
+        password=context.hash("Password123"),
+    )
+    session.add(user)
+    await session.flush()
+
+    link = Link(
+        short_url="safealias",
+        url="https://example.com",
+        total=0,
+        is_active=True,
+        expires_at=None,
+        user_id=user.id,
+    )
+    session.add(link)
+
+    login_response = await client.post(
+        "/api/v1/auth/token",
+        json={
+            "username": "reservedupdate",
+            "password": "Password123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+
+    response = await client.patch(
+        "/api/v1/link/safealias",
+        json={
+            "short_url": "Dashboard",
+        },
+        headers={
+            "Authorization": f"Bearer {access_token}",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "This alias is reserved by the service."
+
+
+@pytest.mark.asyncio
 async def test_update_link_sets_expires_at(client, session):
     app.dependency_overrides.pop(get_current_user_optional, None)
 

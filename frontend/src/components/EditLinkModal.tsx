@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import { ApiError, type LinkSchema, type LinkShortSchema, type UpdateLinkPayload } from "../api/types";
 import { useI18n } from "../i18n/I18nProvider";
 import type { TranslationKey } from "../i18n/translations";
-import { aliasPattern } from "../utils/linkValidation";
+import { aliasPattern, isReservedAlias } from "../utils/linkValidation";
 import Message from "./Message";
 
 type EditableLink = Pick<LinkShortSchema, "url" | "short_url" | "is_active" | "expires_at">;
@@ -61,6 +61,11 @@ export default function EditLinkModal({ link, onClose, onSaved }: EditLinkModalP
 
     if (!trimmedShortUrl) {
       setError(t("editLink.errorAliasRequired"));
+      return;
+    }
+
+    if (isReservedAlias(trimmedShortUrl)) {
+      setError(t("editLink.errorAliasReserved"));
       return;
     }
 
@@ -250,6 +255,10 @@ function getEditErrorMessage(error: unknown, t: (key: TranslationKey) => string)
 
   if (error.status === 409) {
     return t("editLink.errorAliasTaken");
+  }
+
+  if (error.status === 422 && error.message.toLowerCase().includes("reserved by the service")) {
+    return t("editLink.errorAliasReserved");
   }
 
   return t("editLink.errorGeneric");

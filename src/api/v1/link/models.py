@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, field_validator
 
+from domain.link.reserved_aliases import is_reserved_alias
+
 
 class LinkSchema(BaseModel):
     id: int
@@ -23,6 +25,8 @@ class CreateLinkSchema(BaseModel):
         if value is None:
             return value
         value = value.strip()
+        if is_reserved_alias(value):
+            return value
         if not 4 <= len(value) <= 12:
             raise ValueError("short url must be between 4 and 12 characters")
         return value
@@ -38,6 +42,8 @@ class UpdateLinkSchema(BaseModel):
         if value is None:
             return value
         value = value.strip()
+        if is_reserved_alias(value):
+            return value
         if not 4 <= len(value) <= 12:
             raise ValueError("short url must be between 4 and 12 characters")
         return value

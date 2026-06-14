@@ -115,12 +115,12 @@ async def test_redirect_link_not_found_redirects_to_frontend_404(client):
     ):
 
         response = await client.get(
-            "/unknown123",
+            "/missing-short-url",
             follow_redirects=False,
         )
 
     assert response.status_code == 307
-    assert response.headers["location"] == "http://localhost:5173/unknown123"
+    assert response.headers["location"] == "http://localhost:5173/404?short=missing-short-url"
 
 
 

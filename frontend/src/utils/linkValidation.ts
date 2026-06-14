@@ -6,6 +6,23 @@ export const maxUrlLength = 511;
 export const minAliasLength = 4;
 export const maxAliasLength = 12;
 export const aliasPattern = /^[A-Za-z0-9_-]+$/;
+export const reservedAliases = new Set([
+  "api",
+  "assets",
+  "dashboard",
+  "public",
+  "check",
+  "account",
+  "login",
+  "register",
+  "links",
+  "404",
+  "favicon.ico",
+]);
+
+export function isReservedAlias(value: string): boolean {
+  return reservedAliases.has(value.toLowerCase());
+}
 
 export function validateCreateLinkUrl(value: string): TranslationKey | null {
   const trimmedValue = value.trim();
@@ -37,6 +54,10 @@ export function validateOptionalAlias(value: string): TranslationKey | null {
 
   if (!trimmedValue) {
     return null;
+  }
+
+  if (isReservedAlias(trimmedValue)) {
+    return "linkForm.errorAliasReserved";
   }
 
   if (trimmedValue.length < minAliasLength) {

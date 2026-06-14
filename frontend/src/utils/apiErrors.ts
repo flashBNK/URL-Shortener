@@ -105,6 +105,13 @@ export function getCreateLinkError(error: unknown, t: Translate): CreateLinkErro
     };
   }
 
+  if (error.status === 422 && message.includes("reserved by the service")) {
+    return {
+      field: "customAlias",
+      message: t("linkForm.errorAliasReserved"),
+    };
+  }
+
   if (error.status === 422) {
     return {
       field: "form",

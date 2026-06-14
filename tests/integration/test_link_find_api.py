@@ -46,8 +46,10 @@ async def test_find_link_success(client, session):
 async def test_find_link_not_found(client):
 
     response = await client.get(
-        "/api/v1/link/unknown123"
+        "/api/v1/link/missing-short-url",
+        follow_redirects=False,
     )
 
     assert response.status_code == 404
+    assert "location" not in response.headers
     assert response.json()["detail"] == "Link not found"

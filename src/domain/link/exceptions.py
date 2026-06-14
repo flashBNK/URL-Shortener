@@ -17,6 +17,11 @@ class InvalidUrlError(Exception):
         super().__init__( "Invalid url.")
 
 
+class ReservedAliasError(Exception):
+    def __init__(self) -> None:
+        super().__init__("This alias is reserved by the service.")
+
+
 class UnsafeUrlError(Exception):
     def __init__(self) -> None:
         super().__init__( "Unsafe url.")

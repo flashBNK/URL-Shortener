@@ -24,6 +24,7 @@ export default function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/links/:shortUrl" element={<LinkDetailsPage />} />
+          <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

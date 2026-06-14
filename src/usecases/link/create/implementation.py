@@ -1,5 +1,6 @@
-from domain.link.exceptions import InvalidUrlError, LinkAlreadyExist, LinkIsExist, UnsafeUrlError
+from domain.link.exceptions import InvalidUrlError, LinkAlreadyExist, LinkIsExist, ReservedAliasError, UnsafeUrlError
 from domain.link.models import CreateLinkDTO, LinkDTO
+from domain.link.reserved_aliases import is_reserved_alias
 from logger import get_logger
 from services.safe_browsing import SafeBrowsingService
 from services.url import UrlService
@@ -19,6 +20,9 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
     async def execute(self, dto: CreateLinkDTO) -> LinkDTO:
         log.info("creating link", url=dto.url, user_id=dto.user_id)
         dto.url = self._url_service.normalize_url(dto.url)
+
+        if dto.custom_alias and is_reserved_alias(dto.custom_alias):
+            raise ReservedAliasError
 
         if not self._url_service.is_valid_url(url=dto.url):
             raise InvalidUrlError
@@ -41,6 +45,8 @@ class PostgreSQLCreateLinkUseCase(AbstractCreateLinkUseCase):
 
         for _ in range(10):
             dto.short_url = generate_short_code()
+            if is_reserved_alias(dto.short_url):
+                continue
             try:
                 async with self._uow as uow:
                     link = await uow.repository.create(dto)

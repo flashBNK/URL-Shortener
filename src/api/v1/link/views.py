@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
@@ -20,6 +22,7 @@ from domain.link.exceptions import (
     LinkIsExpires,
     LinkIsNotActive,
     LinkNotFoundError,
+    ReservedAliasError,
     UnsafeUrlError,
 )
 from domain.link.models import CreateLinkDTO, LinkDTO, UpdateLinkDTO
@@ -106,7 +109,11 @@ async def redirect_link(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     except LinkNotFoundError:
         frontend_base_url = settings.app.frontend_base_url.rstrip("/")
-        return RedirectResponse(url=f"{frontend_base_url}/{short_url}", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+        quoted_short_url = quote(short_url, safe="")
+        return RedirectResponse(
+            url=f"{frontend_base_url}/404?short={quoted_short_url}",
+            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+        )
     except LinkIsExpires as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
 
@@ -197,6 +204,8 @@ async def update_link(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
     except LinkNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    except ReservedAliasError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
 
     return JSONResponse(_to_schema(link).model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
@@ -235,7 +244,7 @@ async def create_link(
         link = await usecase.execute(dto)
     except (LinkIsExist, LinkAlreadyExist,) as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
-    except (InvalidUrlError, UnsafeUrlError) as exc:
+    except (InvalidUrlError, UnsafeUrlError, ReservedAliasError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
 
     return JSONResponse(_to_schema(link).model_dump(mode="json"), status_code=status.HTTP_201_CREATED)

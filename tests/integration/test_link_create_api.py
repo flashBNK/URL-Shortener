@@ -166,6 +166,37 @@ async def test_create_link_duplicate_alias(client):
     assert second.status_code == 409
 
 
+@pytest.mark.parametrize(
+    "custom_alias",
+    [
+        "api",
+        "assets",
+        "dashboard",
+        "Dashboard",
+        "public",
+        "check",
+        "account",
+        "login",
+        "register",
+        "links",
+        "404",
+        "favicon.ico",
+    ],
+)
+@pytest.mark.asyncio
+async def test_create_link_reserved_custom_alias(client, custom_alias):
+    response = await client.post(
+        "/api/v1/link/",
+        json={
+            "url": "https://example.com/reserved",
+            "custom_alias": custom_alias,
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "This alias is reserved by the service."
+
+
 @pytest.mark.asyncio
 async def test_create_link_invalid_url(client):
     with (
