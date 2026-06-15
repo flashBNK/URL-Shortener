@@ -16,6 +16,21 @@
 | Настройки аккаунта | |
 | ![Настройки аккаунта](docs/screenshots/Account%20settings.png) | |
 
+### Мобильная версия
+
+<table>
+  <tr>
+    <td align="center"><strong>Публичные ссылки</strong></td>
+    <td align="center"><strong>Меню</strong></td>
+    <td align="center"><strong>Настройки аккаунта</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/Public%20links%20-%20mobile%20version.png" alt="Публичные ссылки, мобильная версия" width="240"></td>
+    <td><img src="docs/screenshots/Menu%20-%20mobile%20version.png" alt="Меню, мобильная версия" width="240"></td>
+    <td><img src="docs/screenshots/Account%20settings%20-%20mobile%20version.png" alt="Настройки аккаунта, мобильная версия" width="240"></td>
+  </tr>
+</table>
+
 ## Возможности
 
 - Создание коротких ссылок с автоматическим кодом или custom alias.
