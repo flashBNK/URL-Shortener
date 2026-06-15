@@ -1400,12 +1400,15 @@ h3 {
 
 .chart-viewport {
   height: 250px;
+  min-height: 250px;
   min-width: 0;
+  overflow: visible;
   width: 100%;
 }
 
 .chart-viewport-line {
   height: 260px;
+  min-height: 260px;
 }
 
 .chart-grid-line {
@@ -2649,15 +2652,17 @@ h3 {
 
   .chart-card {
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .chart-viewport {
     height: 220px;
+    min-height: 220px;
   }
 
   .chart-viewport-line {
     height: 230px;
+    min-height: 230px;
   }
 
   .chart-title,
@@ -2983,11 +2988,13 @@ h3 {
   }
 
   .chart-viewport {
-    height: 200px;
+    height: 220px;
+    min-height: 220px;
   }
 
   .chart-viewport-line {
-    height: 210px;
+    height: 230px;
+    min-height: 230px;
   }
 
   .actions-row {

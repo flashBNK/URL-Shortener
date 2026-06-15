@@ -21,6 +21,9 @@ type ChartsProps = {
 };
 
 const colors = ["#1d5fd0", "#17a37b", "#f59e0b", "#e05252", "#7c3aed", "#0f766e"];
+const chartMinHeight = 220;
+const lineChartMinHeight = 230;
+const chartMinWidth = 240;
 
 function mapRecord(record: Record<string, number>, emptyLabel: string) {
   return Object.entries(record).map(([name, value]) => ({
@@ -59,7 +62,7 @@ export default function Charts({ stats }: ChartsProps) {
         </div>
         {byDate.length ? (
           <div className="chart-viewport chart-viewport-line">
-            <ResponsiveContainer height="100%" width="100%">
+            <ResponsiveContainer height="100%" minHeight={lineChartMinHeight} minWidth={chartMinWidth} width="100%">
               <LineChart data={byDate}>
                 <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
                 <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
@@ -87,7 +90,7 @@ export default function Charts({ stats }: ChartsProps) {
         </div>
         {byCountry.length ? (
           <div className="chart-viewport">
-            <ResponsiveContainer height="100%" width="100%">
+            <ResponsiveContainer height="100%" minHeight={chartMinHeight} minWidth={chartMinWidth} width="100%">
               <PieChart>
                 <Pie data={byCountry} dataKey="value" innerRadius={52} nameKey="name" outerRadius={82}>
                   {byCountry.map((entry, index) => (
@@ -110,7 +113,7 @@ export default function Charts({ stats }: ChartsProps) {
         </div>
         {byDevice.length ? (
           <div className="chart-viewport">
-            <ResponsiveContainer height="100%" width="100%">
+            <ResponsiveContainer height="100%" minHeight={chartMinHeight} minWidth={chartMinWidth} width="100%">
               <BarChart data={byDevice}>
                 <CartesianGrid className="chart-grid-line" strokeDasharray="4 4" />
                 <XAxis dataKey="name" tick={{ fill: "var(--muted)", fontSize: 12 }} />
